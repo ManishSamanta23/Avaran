@@ -374,7 +374,7 @@ This risk profile determines their initial premium band and recommended plan.
 ## 🔗 Important Links
 
 - 📁 **GitHub Repository:** `[Your GitHub Repo Link Here]`
-- 🎥 **Phase 1 Strategy Video:** [Watch Here][https://www.dropbox.com/scl/fi/34pn8loi47279v36o628k/GigShield-Project.mp4?rlkey=kb4khgitr5h8v13xen954f07n&st=zt3i401m&dl=0]
+- 🎥 **Phase 1 Strategy Video:** [Watch Here][def]
 - 🖼 **Figma Wireframes:** `[Your Figma Link Here]`
 
 ---
