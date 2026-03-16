@@ -374,7 +374,7 @@ This risk profile determines their initial premium band and recommended plan.
 ## 🔗 Important Links
 
 - 📁 **GitHub Repository:** `[Your GitHub Repo Link Here]`
-- 🎥 **Phase 1 Strategy Video:** `[Your Video Link Here]`
+- 🎥 **Phase 1 Strategy Video:** [Watch Here][https://www.dropbox.com/scl/fi/34pn8loi47279v36o628k/GigShield-Project.mp4?rlkey=kb4khgitr5h8v13xen954f07n&st=zt3i401m&dl=0]
 - 🖼 **Figma Wireframes:** `[Your Figma Link Here]`
 
 ---
@@ -401,3 +401,6 @@ GigShield **only covers** verifiable, objective, external disruptions that cause
 ---
 
 *Built with ❤️ for India's 15M+ gig workers | Guidewire DEVTrails 2026*
+
+
+[def]: https://www.dropbox.com/scl/fi/34pn8loi47279v36o628k/GigShield-Project.mp4?rlkey=kb4khgitr5h8v13xen954f07n&st=zt3i401m&dl=0
