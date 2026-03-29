@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiZap } from 'react-icons/fi';
 import { WiRain, WiSmog, WiThermometer, WiFlood } from 'react-icons/wi';
 import api from '../utils/api';
+import { getCurrentLocation } from '../utils/geolocation';
 import toast from 'react-hot-toast';
 import './TriggersPage.css';
 
@@ -38,11 +39,39 @@ const TriggersPage = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [simulating, setSimulating] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [locationError, setLocationError] = useState(null);
 
   const fetchTriggers = async () => {
     try {
-      const { data } = await api.get('/triggers/live');
-      setTriggers(data);
+      // Get user's current location first
+      let lat = location?.latitude;
+      let lon = location?.longitude;
+
+      if (!lat || !lon) {
+        try {
+          const currentLoc = await getCurrentLocation();
+          lat = currentLoc.latitude;
+          lon = currentLoc.longitude;
+          setLocation(currentLoc);
+        } catch (err) {
+          console.warn('Could not access geolocation:', err);
+          setLocationError('Enable location access for accurate trigger alerts');
+          // Fall back to stored location
+        }
+      }
+
+      // Fetch triggers based on current location
+      if (lat && lon) {
+        const { data } = await api.get('/triggers/live-location', {
+          params: { latitude: lat, longitude: lon }
+        });
+        setTriggers(data);
+      } else {
+        // Fall back to stored city
+        const { data } = await api.get('/triggers/live');
+        setTriggers(data);
+      }
     } catch (err) {
       toast.error('Failed to fetch live triggers');
     } finally {
@@ -101,6 +130,16 @@ const TriggersPage = () => {
           <FiCheckCircle color="#00C49F" size={14} />
           <span>Monitoring: <strong>5 trigger types</strong></span>
         </div>
+        <div className="status-item">
+          <span style={{ color: location ? '#00C49F' : '#FFD166' }}>
+            📍 {location ? `Location: ${location.city || 'Detected'}` : 'Detecting location...'}
+          </span>
+        </div>
+        {locationError && (
+          <div className="status-item" style={{ color: '#FFD166' }}>
+            <span>⚠️ {locationError}</span>
+          </div>
+        )}
         <div className="status-item muted">
           Last updated: {new Date().toLocaleTimeString('en-IN')}
         </div>

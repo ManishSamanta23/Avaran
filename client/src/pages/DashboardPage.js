@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { FiShield, FiDollarSign, FiAlertTriangle, FiCheckCircle, FiArrowRight, FiTrendingUp } from 'react-icons/fi';
+import { WiCloud, WiSmog } from 'react-icons/wi';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+import { getCurrentLocation } from '../utils/geolocation';
+import { getWeather, getAQI, formatWeatherDisplay, formatAQIDisplay } from '../utils/weather';
 import './DashboardPage.css';
 
 const StatCard = ({ icon, label, value, sub, color }) => (
@@ -23,6 +26,10 @@ const DashboardPage = () => {
   const [policy, setPolicy] = useState(null);
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [weather, setWeather] = useState(null);
+  const [aqi, setAqi] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [weatherError, setWeatherError] = useState(null);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -35,6 +42,34 @@ const DashboardPage = () => {
         setData(analytics.data);
         setPolicy(policyRes.data[0] || null);
         setClaims(claimsRes.data.slice(0, 5));
+
+        // Fetch weather and AQI using geolocation
+        try {
+          const currentLoc = await getCurrentLocation();
+          setLocation(currentLoc);
+
+          // Fetch weather data
+          try {
+            const weatherData = await getWeather(currentLoc.latitude, currentLoc.longitude);
+            setWeather(weatherData);
+            setWeatherError(null);
+          } catch (weatherErr) {
+            console.error('Weather fetch error:', weatherErr.response?.data || weatherErr.message);
+            setWeatherError(weatherErr.response?.data?.message || 'Failed to load weather');
+          }
+
+          // Fetch AQI data
+          try {
+            const aqiData = await getAQI(currentLoc.latitude, currentLoc.longitude);
+            setAqi(aqiData);
+          } catch (aqiErr) {
+            console.error('AQI fetch error:', aqiErr.response?.data || aqiErr.message);
+          }
+        } catch (locErr) {
+          console.warn('Could not get location:', locErr);
+          setWeatherError('Location access denied - using stored location');
+          // Continue loading dashboard even if location fails
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -101,6 +136,56 @@ const DashboardPage = () => {
 
       {/* Stats */}
       <div className="stats-grid">
+        {/* Error Card */}
+        {weatherError && (
+          <div className="card" style={{ background: 'rgba(255, 107, 53, 0.1)', borderColor: '#FF6B35', borderWidth: '2px', gridColumn: '1 / -1', marginBottom: '16px' }}>
+            <p style={{ color: '#FF6B35', fontSize: '14px', fontWeight: '600' }}>⚠️ Weather Data Issue</p>
+            <p style={{ color: '#FF8C5A', fontSize: '13px', marginTop: '8px' }}>{weatherError}</p>
+            <p style={{ color: '#8899BB', fontSize: '12px', marginTop: '8px' }}>
+              💡 Tip: Check server console for API errors or add OPENWEATHER_API_KEY to server/.env
+            </p>
+          </div>
+        )}
+
+        {/* Weather Card */}
+        {weather && aqi && (
+          <div className="card" style={{ background: 'linear-gradient(135deg, #162347 0%, #1e3060 100%)', gridColumn: '1 / 2' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div>
+                <p style={{ color: '#8899BB', fontSize: '12px', textTransform: 'uppercase', marginBottom: '8px' }}>Current Weather</p>
+                <h3 style={{ fontSize: '28px', color: '#FF6B35' }}>{Math.round(weather.temp)}°C</h3>
+                <p style={{ color: '#8899BB', fontSize: '14px' }}>{weather.weather?.[0]?.main}</p>
+              </div>
+              <WiCloud size={32} color="#63B3ED" />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', color: '#8899BB', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px' }}>
+              <div>💧 {weather.humidity}%</div>
+              <div>💨 {Math.round(weather.wind_speed * 3.6)} km/h</div>
+            </div>
+          </div>
+        )}
+
+        {aqi && (
+          <div className="card" style={{ background: 'linear-gradient(135deg, #162347 0%, #1e3060 100%)', gridColumn: '1 / 2' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <p style={{ color: '#8899BB', fontSize: '12px', textTransform: 'uppercase', marginBottom: '8px' }}>Air Quality</p>
+                <h3 style={{ fontSize: '28px', color: formatAQIDisplay(aqi).color }}>{formatAQIDisplay(aqi).level}</h3>
+                <p style={{ color: '#8899BB', fontSize: '14px' }}>PM2.5: {formatAQIDisplay(aqi).pm25}</p>
+              </div>
+              <WiSmog size={32} color={formatAQIDisplay(aqi).color} />
+            </div>
+          </div>
+        )}
+        
+        {location && (
+          <div className="card" style={{ background: 'rgba(0,196,159,0.1)', borderColor: '#00C49F', gridColumn: '1 / 2' }}>
+            <p style={{ color: '#8899BB', fontSize: '12px', textTransform: 'uppercase', marginBottom: '8px' }}>📍 Detected Location</p>
+            <h3 style={{ fontSize: '16px', color: '#00C49F' }}>{location.city || 'Detected'}</h3>
+            <p style={{ color: '#8899BB', fontSize: '12px', marginTop: '8px' }}>±{Math.round(location.accuracy)}m accuracy</p>
+          </div>
+        )}
+        
         <StatCard icon={<FiDollarSign />} label="Earnings Protected"
           value={`₹${(data?.earningsProtected || 0).toLocaleString()}`}
           sub="Total payouts received" color="#00C49F" />
