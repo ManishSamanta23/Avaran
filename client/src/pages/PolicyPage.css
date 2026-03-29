@@ -1,0 +1,53 @@
+.policy-page { padding: 32px 24px; }
+.page-header { margin-bottom: 32px; }
+.page-header h1 { font-size: 32px; font-weight: 700; margin-bottom: 6px; }
+.page-header p { color: var(--text-muted); }
+
+.active-policy { margin-bottom: 32px; border-color: rgba(255,107,53,0.2); }
+.ap-header { display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+.ap-title { display: flex; align-items: center; gap: 14px; }
+.ap-title h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.ap-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px; margin-bottom: 20px; }
+.ap-stat { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 14px; }
+.ap-stat span { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px; }
+.ap-stat strong { font-size: 20px; font-family: var(--font-head); }
+.ap-events p { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+.event-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.event-tag { display: flex; align-items: center; gap: 6px; font-size: 13px;
+  background: rgba(255,107,53,0.1); color: var(--orange);
+  padding: 4px 12px; border-radius: 20px; }
+
+.plans-intro { text-align: center; margin-bottom: 32px; }
+.plans-intro h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.plans-intro p { color: var(--text-muted); }
+
+.plans-grid-policy { display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px; max-width: 900px; margin: 0 auto 40px; }
+
+.plan-card-policy { position: relative; padding: 28px; text-align: center; }
+.plan-card-policy.popular { border-color: var(--orange); box-shadow: 0 0 40px rgba(255,107,53,0.12); }
+.popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: var(--orange); color: white; padding: 3px 14px;
+  border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.plan-card-policy h3 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+.plan-price-big { margin-bottom: 8px; }
+.plan-price-big strong { font-size: 44px; font-family: var(--font-head); font-weight: 800; }
+.plan-price-big span { font-size: 15px; color: var(--text-muted); }
+.payout-label { font-size: 13px; color: var(--text-muted); margin-bottom: 20px;
+  background: rgba(255,255,255,0.04); padding: 6px; border-radius: 8px; }
+.plan-events { list-style: none; margin-bottom: 24px; text-align: left; }
+.plan-events li { display: flex; align-items: center; gap: 8px; padding: 7px 0;
+  font-size: 14px; border-bottom: 1px solid var(--card-border); }
+
+.upgrade-section { margin-top: 32px; }
+.upgrade-section h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.upgrade-section > p { color: var(--text-muted); margin-bottom: 20px; }
+.upgrade-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.upgrade-card { padding: 20px; }
+.upgrade-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.upgrade-price { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+
+@media (max-width: 600px) { .policy-page { padding: 20px 16px; } }

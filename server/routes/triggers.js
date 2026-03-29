@@ -1,0 +1,72 @@
+const express = require('express');
+const router = express.Router();
+const Trigger = require('../models/Trigger');
+const { protect } = require('../middleware/auth');
+
+// Mock live disruption data by city
+const getMockTriggers = (city) => [
+  {
+    type: 'Heavy Rainfall',
+    city,
+    value: '42mm/hr',
+    threshold: '>35mm/hr',
+    severity: 'High',
+    isActive: true,
+    affectedWorkers: Math.floor(Math.random() * 200) + 50,
+    dataSource: 'OpenWeatherMap API',
+    detectedAt: new Date()
+  },
+  {
+    type: 'Severe AQI',
+    city,
+    value: 'AQI 387',
+    threshold: '>350',
+    severity: 'Critical',
+    isActive: Math.random() > 0.5,
+    affectedWorkers: Math.floor(Math.random() * 300) + 100,
+    dataSource: 'CPCB API',
+    detectedAt: new Date(Date.now() - 3600000)
+  },
+  {
+    type: 'Flash Flood',
+    city,
+    value: 'Zone closure detected',
+    threshold: 'Road closure signal',
+    severity: 'High',
+    isActive: Math.random() > 0.6,
+    affectedWorkers: Math.floor(Math.random() * 150) + 30,
+    dataSource: 'IMD Flood API',
+    detectedAt: new Date(Date.now() - 7200000)
+  }
+];
+
+// @route GET /api/triggers/live
+router.get('/live', protect, async (req, res) => {
+  try {
+    const city = req.worker.city || 'Mumbai';
+    const triggers = getMockTriggers(city);
+    res.json(triggers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @route POST /api/triggers/simulate
+router.post('/simulate', protect, async (req, res) => {
+  try {
+    const { type, city, value, severity } = req.body;
+    const trigger = await Trigger.create({
+      type, city: city || req.worker.city,
+      value, severity: severity || 'High',
+      isActive: true,
+      affectedWorkers: Math.floor(Math.random() * 200) + 50,
+      dataSource: 'Simulated',
+      expiresAt: new Date(Date.now() + 6 * 3600000)
+    });
+    res.status(201).json({ message: 'Trigger simulated!', trigger });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+module.exports = router;

@@ -1,0 +1,169 @@
+.triggers-page { padding: 32px 24px; }
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+  padding: 16px 24px;
+}
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.status-item strong { color: var(--white); }
+.status-item.muted { color: var(--text-muted); font-size: 13px; margin-left: auto; }
+.status-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.status-dot.active {
+  background: #FF4444;
+  box-shadow: 0 0 0 3px rgba(255,68,68,0.2);
+  animation: pulse-glow 2s infinite;
+}
+.status-dot.ok {
+  background: #00C49F;
+  box-shadow: 0 0 0 3px rgba(0,196,159,0.2);
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* Trigger Alert Cards */
+.triggers-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+.trigger-alert-card { transition: transform 0.2s; }
+.trigger-alert-card:hover { transform: translateY(-3px); }
+.trigger-alert-card.active { border-color: rgba(255,68,68,0.25); }
+.trigger-alert-card.inactive { opacity: 0.7; }
+
+.ta-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.ta-icon {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ta-header h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.ta-source { font-size: 12px; color: var(--text-muted); }
+.ta-status { margin-left: auto; }
+
+.ta-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ta-row {
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.ta-row span { font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;
+  text-transform: uppercase; letter-spacing: 0.4px; }
+.ta-row strong { font-size: 14px; font-weight: 600; }
+
+.ta-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: rgba(255,107,53,0.06);
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,107,53,0.1);
+}
+
+/* Simulate Section */
+.simulate-section { margin-bottom: 40px; }
+.simulate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.simulate-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.simulate-header p { color: var(--text-muted); font-size: 14px; }
+
+.simulate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+.simulate-card {
+  text-align: center;
+  padding: 24px 16px;
+  transition: transform 0.2s;
+}
+.simulate-card:hover { transform: translateY(-3px); }
+.sim-icon {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+}
+.simulate-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.simulate-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+.sim-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 12px;
+  font-size: 13px;
+  padding: 9px 16px;
+}
+
+/* Logic Steps */
+.trigger-logic { }
+.trigger-logic h3 { font-size: 18px; font-weight: 700; margin-bottom: 24px; }
+.logic-steps { display: flex; flex-direction: column; gap: 0; }
+.logic-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+.logic-step:last-child { border-bottom: none; }
+.logic-num {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: var(--font-head);
+  color: var(--orange);
+  opacity: 0.4;
+  line-height: 1;
+  min-width: 40px;
+}
+.logic-step h5 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.logic-step p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+.spin-icon { animation: spin 1s linear infinite; }
+.page-header-row { display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+.page-header-row h1 { font-size: 32px; font-weight: 700; margin-bottom: 6px; }
+.page-header-row p { color: var(--text-muted); }
+
+@media (max-width: 768px) {
+  .triggers-page { padding: 20px 16px; }
+  .status-bar { gap: 16px; }
+  .status-item.muted { margin-left: 0; }
+  .ta-body { grid-template-columns: 1fr 1fr; }
+}
