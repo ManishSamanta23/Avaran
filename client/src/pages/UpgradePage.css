@@ -1,0 +1,59 @@
+.upgrade-page {
+  max-width: 760px;
+}
+
+.upgrade-header {
+  margin-bottom: 24px;
+}
+
+.upgrade-header h1 {
+  margin-bottom: 8px;
+}
+
+.upgrade-header p {
+  color: var(--text-light);
+}
+
+.upgrade-summary {
+  margin-bottom: 16px;
+}
+
+.upgrade-summary h2 {
+  margin-bottom: 8px;
+  color: var(--orange);
+}
+
+.upgrade-summary-price {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.upgrade-summary-payout {
+  color: var(--text-light);
+}
+
+.upgrade-payment {
+  margin-bottom: 16px;
+}
+
+.upgrade-payment h3 {
+  margin-bottom: 14px;
+}
+
+.upgrade-payment-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.upgrade-payment-line:last-of-type {
+  margin-bottom: 16px;
+}
+
+.upgrade-confirm-btn {
+  width: 100%;
+  justify-content: center;
+}

@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import PolicyPage from './pages/PolicyPage';
+import UpgradePage from './pages/UpgradePage';
 import ClaimsPage from './pages/ClaimsPage';
 import TriggersPage from './pages/TriggersPage';
 
@@ -34,6 +35,7 @@ const AppRoutes = () => {
         <Route path="/register" element={worker ? <Navigate to="/dashboard" /> : <RegisterPage />} />
         <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
         <Route path="/policy" element={<PrivateRoute><PolicyPage /></PrivateRoute>} />
+        <Route path="/upgrade" element={<PrivateRoute><UpgradePage /></PrivateRoute>} />
         <Route path="/claims" element={<PrivateRoute><ClaimsPage /></PrivateRoute>} />
         <Route path="/triggers" element={<PrivateRoute><TriggersPage /></PrivateRoute>} />
       </Routes>

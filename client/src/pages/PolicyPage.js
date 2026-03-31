@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiCheckCircle, FiShield, FiPause, FiPlay } from 'react-icons/fi';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
@@ -14,13 +15,15 @@ const PLANS = [
 ];
 
 const PolicyPage = () => {
+  const navigate = useNavigate();
   const [policy, setPolicy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(null);
 
   useEffect(() => {
     api.get('/policies/my').then(r => {
-      setPolicy(r.data[0] || null);
+      const activePolicy = r.data.find(p => p.status === 'Active');
+      setPolicy(activePolicy || r.data[0] || null);
       setLoading(false);
     });
   }, []);
@@ -152,7 +155,7 @@ const PolicyPage = () => {
                 <h4 style={{ color: p.color }}>{p.name} Shield</h4>
                 <p className="upgrade-price">₹{p.premium}/week · ₹{p.payout.toLocaleString()} max</p>
                 <button className="btn-outline-orange"
-                  onClick={() => toast('Contact support to upgrade plans')}>
+                  onClick={() => navigate(`/upgrade?plan=${p.name.toLowerCase()}`)}>
                   Upgrade to {p.name}
                 </button>
               </div>

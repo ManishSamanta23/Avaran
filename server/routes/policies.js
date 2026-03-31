@@ -41,6 +41,27 @@ router.get('/my', protect, async (req, res) => {
   }
 });
 
+// @route PUT /api/policies/my/upgrade
+router.put('/my/upgrade', protect, async (req, res) => {
+  try {
+    const { plan } = req.body;
+    if (!PLANS[plan]) return res.status(400).json({ message: 'Invalid plan' });
+
+    const policy = await Policy.findOne({ worker: req.worker._id, status: 'Active' }).sort('-createdAt');
+    if (!policy) return res.status(404).json({ message: 'No active policy found' });
+
+    policy.plan = plan;
+    policy.weeklyPremium = PLANS[plan].premium;
+    policy.maxWeeklyPayout = PLANS[plan].maxPayout;
+    policy.coverageEvents = PLANS[plan].events;
+
+    await policy.save();
+    res.json(policy);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // @route PUT /api/policies/:id/pause
 router.put('/:id/pause', protect, async (req, res) => {
   try {
