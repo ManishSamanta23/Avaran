@@ -259,7 +259,7 @@ This risk profile determines their initial premium band and recommended plan.
 ### Frontend
 | Layer | Technology |
 |-------|-----------|
-| UI Framework | React.js (PWA) |
+| UI Framework | React.js (Vite PWA) |
 | Mobile App (Phase 3) | React Native |
 | Styling | Tailwind CSS |
 | Maps / Zone Visualization | Leaflet.js + OpenStreetMap |
@@ -269,10 +269,9 @@ This risk profile determines their initial premium band and recommended plan.
 | Layer | Technology |
 |-------|-----------|
 | API Server | Node.js + Express.js |
-| Auth | Firebase Auth (phone OTP) |
-| Database | PostgreSQL (policies, claims, users) |
-| Cache | Redis (real-time trigger state) |
-| Message Queue | BullMQ (async claim processing) |
+| Auth & Security | JWT + **Zod Payload Strict Validation** |
+| Database | MongoDB + Mongoose |
+| Application Structure | Single Monorepo with Concurrent Execution |
 
 ### AI/ML
 | Component | Technology |
@@ -310,17 +309,17 @@ This risk profile determines their initial premium band and recommended plan.
 - [x] Tech stack selection
 - [x] Repository setup and README
 - [x] Wireframes for onboarding and dashboard
-- [ ] 2-minute strategy video
+- [x] 2-minute strategy video
 
-### Phase 2 — Automation & Protection (March 21 – April 4)
-- [ ] Worker onboarding flow (phone OTP + KYC + platform ID)
-- [ ] Policy creation with dynamic premium calculation
-- [ ] 5 parametric trigger integrations (Weather, AQI, Curfew)
-- [ ] Auto-claim initiation engine
-- [ ] Fraud detection v1 (rule-based)
-- [ ] Basic worker dashboard
-- [ ] Razorpay sandbox integration for premium deduction
-- [ ] 2-minute demo video
+### Phase 2 — Automation & Protection (March 21 – April 4) ✅
+- [x] Worker onboarding flow (phone OTP + KYC + platform ID)
+- [x] Policy creation with dynamic premium calculation
+- [x] 5 parametric trigger integrations (Weather, AQI, Curfew)
+- [x] Auto-claim initiation engine
+- [x] Fraud detection v1 (rule-based)
+- [x] Basic worker dashboard
+- [x] Single-repo Vite frontend & Express backend optimization
+- [x] Strict Zod payload validation across all API endpoints
 
 ### Phase 3 — Scale & Optimise (April 5–17)
 - [ ] ML-powered fraud detection (Isolation Forest)
@@ -373,6 +372,8 @@ This risk profile determines their initial premium band and recommended plan.
 
 ## 🔗 Important Links
 
+- 📁 **Detailed Setup Guide:** [Setup Guide (SETUP.md)](SETUP.md)
+- 📝 **Phase 2 Implementation Details:** [Deliverables Breakdown (phrase1.md)](phrase1.md)
 - 📁 **GitHub Repository:** `[Your GitHub Repo Link Here]`
 - 🎥 **Phase 1 Strategy Video:** [Watch Here][def]
 - 🖼 **Figma Wireframes:** `[Your Figma Link Here]`
