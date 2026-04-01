@@ -2,6 +2,14 @@ const express = require('express');
 const router = express.Router();
 const Trigger = require('../models/Trigger');
 const { protect } = require('../middleware/auth');
+const { z } = require('zod');
+
+const simulateSchema = z.object({
+  type: z.string().min(1, 'Type is required'),
+  city: z.string().optional(),
+  value: z.any().optional(),
+  severity: z.string().optional()
+});
 
 // Mock live disruption data by city
 const getMockTriggers = (city, latitude = null, longitude = null) => [
@@ -77,7 +85,9 @@ router.get('/live', protect, async (req, res) => {
 // @route POST /api/triggers/simulate
 router.post('/simulate', protect, async (req, res) => {
   try {
-    const { type, city, value, severity } = req.body;
+    const parsed = simulateSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0].message });
+    const { type, city, value, severity } = parsed.data;
     const trigger = await Trigger.create({
       type, city: city || req.worker.city,
       value, severity: severity || 'High',

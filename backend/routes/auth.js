@@ -2,6 +2,25 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Worker = require('../models/Worker');
+const { z } = require('zod');
+
+const registerSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: z.string().min(10, 'Phone must be at least 10 digits'),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  platform: z.enum(['Zepto', 'Blinkit', 'Other'], { errorMap: () => ({ message: 'Platform must be Zepto, Blinkit, or Other' }) }),
+  platformId: z.string().optional(),
+  city: z.string().min(2, 'City is required'),
+  pincode: z.string().min(6, 'Pincode must be at least 6 characters'),
+  avgWeeklyEarnings: z.coerce.number().positive('Average weekly earnings must be positive').optional(),
+  avgDailyHours: z.coerce.number().positive('Average daily hours must be positive').max(24, 'Cannot exceed 24 hours').optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters')
+});
+
+const loginSchema = z.object({
+  phone: z.string().min(10, 'Phone must be at least 10 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters')
+});
 
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -9,8 +28,11 @@ const generateToken = (id) =>
 // @route POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0].message });
+
     const { name, phone, email, platform, platformId, city, pincode,
-      avgWeeklyEarnings, avgDailyHours, password } = req.body;
+      avgWeeklyEarnings, avgDailyHours, password } = parsed.data;
 
     const exists = await Worker.findOne({ phone });
     if (exists) return res.status(400).json({ message: 'Phone already registered' });
@@ -48,7 +70,10 @@ router.post('/register', async (req, res) => {
 // @route POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
-    const { phone, password } = req.body;
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0].message });
+
+    const { phone, password } = parsed.data;
     const worker = await Worker.findOne({ phone });
     if (worker && (await worker.matchPassword(password))) {
       res.json({

@@ -3,6 +3,13 @@ const router = express.Router();
 const Claim = require('../models/Claim');
 const Policy = require('../models/Policy');
 const { protect } = require('../middleware/auth');
+const { z } = require('zod');
+
+const claimSchema = z.object({
+  triggerType: z.string({ required_error: 'Trigger type is required' }).min(1, 'Trigger type is required'),
+  triggerValue: z.any().optional(),
+  hoursLost: z.coerce.number().positive('Hours lost must be greater than 0').max(24, 'Hours lost cannot exceed 24')
+});
 
 // Payout formula
 const calculatePayout = (hoursLost, avgDailyHours, avgDailyEarnings, plan) => {
@@ -52,7 +59,9 @@ const currentWeatherMatchesTrigger = (triggerType, triggerValue) => {
 // @route POST /api/claims
 router.post('/', protect, async (req, res) => {
   try {
-    const { triggerType, triggerValue, hoursLost } = req.body;
+    const parsed = claimSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0].message });
+    const { triggerType, triggerValue, hoursLost } = parsed.data;
     const policy = await Policy.findOne({ worker: req.worker._id, status: 'Active' });
     if (!policy) return res.status(400).json({ message: 'No active policy found' });
 

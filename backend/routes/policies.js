@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Policy = require('../models/Policy');
 const { protect } = require('../middleware/auth');
+const { z } = require('zod');
+
+const planSchema = z.object({
+  plan: z.enum(['Basic', 'Pro', 'Max'], { errorMap: () => ({ message: 'Invalid plan selected' }) })
+});
 
 const PLANS = {
   Basic: { premium: 29, maxPayout: 800, events: ['Heavy Rainfall', 'Flash Flood'] },
@@ -17,8 +22,9 @@ const calculatePremium = (base, riskScore) => {
 // @route POST /api/policies
 router.post('/', protect, async (req, res) => {
   try {
-    const { plan } = req.body;
-    if (!PLANS[plan]) return res.status(400).json({ message: 'Invalid plan' });
+    const parsed = planSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0].message });
+    const { plan } = parsed.data;
 
     const existing = await Policy.findOne({ worker: req.worker._id, status: 'Active' });
     if (existing) return res.status(400).json({ message: 'Active policy already exists' });
@@ -49,8 +55,9 @@ router.get('/my', protect, async (req, res) => {
 // @route PUT /api/policies/my/upgrade
 router.put('/my/upgrade', protect, async (req, res) => {
   try {
-    const { plan } = req.body;
-    if (!PLANS[plan]) return res.status(400).json({ message: 'Invalid plan' });
+    const parsed = planSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0].message });
+    const { plan } = parsed.data;
 
     const policy = await Policy.findOne({ worker: req.worker._id, status: 'Active' }).sort('-createdAt');
     if (!policy) return res.status(404).json({ message: 'No active policy found' });
