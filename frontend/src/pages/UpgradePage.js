@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 import './UpgradePage.css';
@@ -28,15 +29,25 @@ const PLAN_DETAILS = {
   },
 };
 
+const calculatePremium = (base, riskScore) => {
+  if (riskScore == null) return base;
+  return base + Math.round((riskScore - 0.55) * 40);
+};
+
 const UpgradePage = () => {
+  const { worker } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
 
   const selectedPlan = useMemo(() => {
     const planKey = (searchParams.get('plan') || '').toLowerCase();
-    return PLAN_DETAILS[planKey] || PLAN_DETAILS.basic;
-  }, [searchParams]);
+    const planDetail = PLAN_DETAILS[planKey] || PLAN_DETAILS.basic;
+    return {
+      ...planDetail,
+      weeklyPrice: calculatePremium(planDetail.weeklyPrice, worker?.riskScore)
+    };
+  }, [searchParams, worker?.riskScore]);
 
   const handleConfirm = async () => {
     setConfirming(true);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiCheckCircle, FiShield, FiPause, FiPlay } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import './PolicyPage.css';
@@ -14,7 +15,13 @@ const PLANS = [
     events: ['Heavy Rainfall', 'Flash Flood', 'Extreme Heat', 'Severe AQI', 'Curfew/Bandh'] },
 ];
 
+const calculatePremium = (base, riskScore) => {
+  if (riskScore == null) return base;
+  return base + Math.round((riskScore - 0.55) * 40);
+};
+
 const PolicyPage = () => {
+  const { worker } = useAuth();
   const navigate = useNavigate();
   const [policy, setPolicy] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -116,12 +123,14 @@ const PolicyPage = () => {
             <p>Premium auto-deducts every Monday via UPI. Cancel anytime.</p>
           </div>
           <div className="plans-grid-policy">
-            {PLANS.map(p => (
+            {PLANS.map(p => {
+              const dynamicPremium = calculatePremium(p.premium, worker?.riskScore);
+              return (
               <div key={p.name} className={`plan-card-policy card ${p.popular ? 'popular' : ''}`}>
                 {p.popular && <div className="popular-badge">Most Popular</div>}
                 <h3 style={{ color: p.color }}>{p.name} Shield</h3>
                 <div className="plan-price-big">
-                  <strong>₹{p.premium}</strong><span>/week</span>
+                  <strong>₹{dynamicPremium}</strong><span>/week</span>
                 </div>
                 <p className="payout-label">Up to ₹{p.payout.toLocaleString()} payout/week</p>
                 <ul className="plan-events">
@@ -139,7 +148,7 @@ const PolicyPage = () => {
                   {activating === p.name ? 'Activating...' : `Activate ${p.name}`}
                 </button>
               </div>
-            ))}
+            )})}
           </div>
         </>
       )}
@@ -150,16 +159,18 @@ const PolicyPage = () => {
           <h3>Upgrade Your Plan</h3>
           <p>Get more coverage for a few rupees more per week</p>
           <div className="upgrade-cards">
-            {PLANS.filter(p => p.name !== policy.plan).map(p => (
+            {PLANS.filter(p => p.name !== policy.plan).map(p => {
+              const dynamicPremium = calculatePremium(p.premium, worker?.riskScore);
+              return (
               <div key={p.name} className="upgrade-card card">
                 <h4 style={{ color: p.color }}>{p.name} Shield</h4>
-                <p className="upgrade-price">₹{p.premium}/week · ₹{p.payout.toLocaleString()} max</p>
+                <p className="upgrade-price">₹{dynamicPremium}/week · ₹{p.payout.toLocaleString()} max</p>
                 <button className="btn-outline-orange"
                   onClick={() => navigate(`/upgrade?plan=${p.name.toLowerCase()}`)}>
                   Upgrade to {p.name}
                 </button>
               </div>
-            ))}
+            )})}
           </div>
         </div>
       )}

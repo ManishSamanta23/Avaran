@@ -9,6 +9,11 @@ const PLANS = {
   Max:   { premium: 79, maxPayout: 2500, events: ['Heavy Rainfall', 'Flash Flood', 'Extreme Heat', 'Severe AQI', 'Curfew/Bandh'] }
 };
 
+const calculatePremium = (base, riskScore) => {
+  if (riskScore == null) return base;
+  return base + Math.round((riskScore - 0.55) * 40);
+};
+
 // @route POST /api/policies
 router.post('/', protect, async (req, res) => {
   try {
@@ -21,7 +26,7 @@ router.post('/', protect, async (req, res) => {
     const policy = await Policy.create({
       worker: req.worker._id,
       plan,
-      weeklyPremium: PLANS[plan].premium,
+      weeklyPremium: calculatePremium(PLANS[plan].premium, req.worker.riskScore),
       maxWeeklyPayout: PLANS[plan].maxPayout,
       coverageEvents: PLANS[plan].events
     });
@@ -51,7 +56,7 @@ router.put('/my/upgrade', protect, async (req, res) => {
     if (!policy) return res.status(404).json({ message: 'No active policy found' });
 
     policy.plan = plan;
-    policy.weeklyPremium = PLANS[plan].premium;
+    policy.weeklyPremium = calculatePremium(PLANS[plan].premium, req.worker.riskScore);
     policy.maxWeeklyPayout = PLANS[plan].maxPayout;
     policy.coverageEvents = PLANS[plan].events;
 

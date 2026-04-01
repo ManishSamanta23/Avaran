@@ -36,6 +36,7 @@ router.post('/register', async (req, res) => {
       phone: worker.phone,
       platform: worker.platform,
       city: worker.city,
+      riskScore: worker.riskScore,
       riskZone: worker.riskZone,
       token: generateToken(worker._id)
     });
@@ -56,6 +57,7 @@ router.post('/login', async (req, res) => {
         phone: worker.phone,
         platform: worker.platform,
         city: worker.city,
+        riskScore: worker.riskScore,
         riskZone: worker.riskZone,
         token: generateToken(worker._id)
       });
