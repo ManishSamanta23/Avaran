@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { FiShield, FiDollarSign, FiAlertTriangle, FiCheckCircle, FiArrowRight, FiTrendingUp, FiMapPin } from 'react-icons/fi';
+import { FiDollarSign, FiAlertTriangle, FiCheckCircle, FiArrowRight, FiTrendingUp, FiMapPin } from 'react-icons/fi';
 import { WiCloud, WiSmog } from 'react-icons/wi';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import { getCurrentLocation } from '../utils/geolocation';
 import { getWeather, getAQI, formatWeatherDisplay, formatAQIDisplay } from '../utils/weather';
 import './DashboardPage.css';
+import ShieldIcon from '../components/ShieldIcon';
 
 const StatCard = ({ icon, label, value, sub, color, style = {}, className = '' }) => (
   <div className={`stat-card card ${className}`.trim()} style={style}>
@@ -112,7 +113,7 @@ const DashboardPage = () => {
       {policy ? (
         <div className="policy-banner card">
           <div className="policy-info">
-            <FiShield size={28} color="#FF6B35" />
+            <ShieldIcon />
             <div>
               <h4>{policy.plan} Shield — Active</h4>
               <p>₹{policy.weeklyPremium}/week · Up to ₹{policy.maxWeeklyPayout.toLocaleString()} payout</p>

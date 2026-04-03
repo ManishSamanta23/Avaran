@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCheckCircle, FiShield, FiPause, FiPlay, FiTrendingUp, FiZap, FiAlertTriangle } from 'react-icons/fi';
+import { FiCheckCircle, FiPause, FiPlay, FiTrendingUp, FiZap, FiAlertTriangle } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import './PolicyPage.css';
+import ShieldIcon from '../components/ShieldIcon';
 
 /**
  * Static Configuration:
@@ -178,7 +179,7 @@ const PolicyPage = () => {
         <div className="active-policy card">
           <div className="ap-header">
             <div className="ap-title">
-              <FiShield size={28} color="#FF6B35" />
+              <ShieldIcon size={28} color="#FF6B35" />
               <div>
                 <h3>{policy.plan} Shield</h3>
                 <span className={`badge badge-${policy.status === 'Active' ? 'green' : 'yellow'}`}>

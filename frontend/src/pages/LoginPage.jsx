@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiShield, FiPhone, FiLock } from 'react-icons/fi';
+import { FiPhone, FiLock } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import './AuthPages.css';
+import ShieldIcon from '../components/ShieldIcon';
 
 const LoginPage = () => {
   const [form, setForm] = useState({ phone: '', password: '' });
@@ -32,7 +33,7 @@ const LoginPage = () => {
       <div className="auth-glow" />
       <div className="auth-card card">
         <div className="auth-logo">
-          <FiShield color="#FF6B35" size={32} />
+          <ShieldIcon color="#FF6B35" size={32} />
           <h2>Avaran</h2>
         </div>
         <h3>Welcome back</h3>

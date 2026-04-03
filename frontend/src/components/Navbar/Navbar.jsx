@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiShield, FiMenu, FiX, FiLogOut, FiUser } from 'react-icons/fi';
+import { FiMenu, FiX, FiLogOut, FiUser } from 'react-icons/fi';
 import './Navbar.css';
+import ShieldIcon from '../ShieldIcon';
 
 const Navbar = () => {
   const { worker, logout } = useAuth();
@@ -27,7 +28,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="nav-inner page-container">
         <Link to="/" className="nav-logo">
-          <FiShield className="logo-icon" />
+          <ShieldIcon />
           <span>Avaran</span>
         </Link>
 

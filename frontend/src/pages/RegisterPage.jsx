@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiShield } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import './AuthPages.css';
+import ShieldIcon from '../components/ShieldIcon';
 
 const cities = ['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Pune', 'Ahmedabad', 'Jaipur', 'Lucknow'];
 
@@ -45,7 +45,7 @@ const RegisterPage = () => {
       <div className="auth-glow" />
       <div className="auth-card card wide">
         <div className="auth-logo">
-          <FiShield color="#FF6B35" size={32} />
+          <ShieldIcon />
           <h2>Avaran</h2>
         </div>
 

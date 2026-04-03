@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiShield, FiZap, FiTrendingUp, FiCheckCircle, FiArrowRight } from 'react-icons/fi';
+import { FiZap, FiTrendingUp, FiCheckCircle, FiArrowRight } from 'react-icons/fi';
 import { WiRain, WiSmog, WiThermometer } from 'react-icons/wi';
 import './LandingPage.css';
+import ShieldIcon from '../components/ShieldIcon';
 
 const LandingPage = () => {
   const plans = [
@@ -18,7 +19,7 @@ const LandingPage = () => {
     { icon: <WiRain size={32} />, label: 'Heavy Rainfall', threshold: '> 35mm/hr', color: '#63B3ED' },
     { icon: <WiThermometer size={32} />, label: 'Extreme Heat', threshold: '> 45°C', color: '#FF6B35' },
     { icon: <WiSmog size={32} />, label: 'Severe AQI', threshold: '> 350', color: '#A78BFA' },
-    { icon: <FiShield size={24} />, label: 'Flash Flood', threshold: 'Zone closure', color: '#00C49F' },
+    { icon: <ShieldIcon />, label: 'Flash Flood', threshold: 'Zone closure', color: '#00C49F' },
     { icon: <FiZap size={24} />, label: 'Curfew/Bandh', threshold: 'Official alert', color: '#FFD166' },
   ];
 
@@ -153,7 +154,7 @@ const LandingPage = () => {
       <footer className="footer">
         <div className="page-container">
           <div className="footer-logo">
-            <FiShield color="#FF6B35" />
+            <ShieldIcon color="#FF6B35" />
             <span>Avaran</span>
           </div>
           <p>Built for India's invisible workforce · Guidewire DEVTrails 2026</p>
