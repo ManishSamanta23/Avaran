@@ -5,7 +5,7 @@ import { getCurrentLocation } from '../utils/geolocation';
 import toast from 'react-hot-toast';
 import './ClaimsPage.css';
 
-const TRIGGERS = ['Heavy Rainfall', 'Flash Flood', 'Extreme Heat', 'Cyclone', 'Air Pollution', 'Severe AQI', 'Curfew/Bandh'];
+const TRIGGERS = ['Heavy Rainfall', 'Flash Flood', 'Extreme Heat', 'Severe AQI', 'Curfew/Bandh'];
 
 const ClaimsPage = () => {
   const [claims, setClaims] = useState([]);

@@ -5,7 +5,7 @@ const claimSchema = new mongoose.Schema({
   policy: { type: mongoose.Schema.Types.ObjectId, ref: 'Policy', required: true },
   triggerType: {
     type: String,
-    enum: ['Heavy Rainfall', 'Flash Flood', 'Extreme Heat', 'Cyclone', 'Air Pollution', 'Severe AQI', 'Curfew/Bandh'],
+    enum: ['Heavy Rainfall', 'Flash Flood', 'Extreme Heat', 'Severe AQI', 'Curfew/Bandh'],
     required: true
   },
   triggerValue: { 
