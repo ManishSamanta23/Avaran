@@ -22,9 +22,27 @@ const ClaimsPage = () => {
     accuracy: null
   });
   const [submitting, setSubmitting] = useState(false);
+  const [submissionStep, setSubmissionStep] = useState(0);
+  const [proactiveSuggestion, setProactiveSuggestion] = useState(null);
+
+  const STEPS = [
+    { label: 'Capturing GPS...', icon: <FiMapPin /> },
+    { label: 'Querying OpenWeatherMap...', icon: <FiDatabase /> },
+    { label: 'Analyzing Precipitation Data...', icon: <FiCheckCircle /> },
+    { label: 'Fraud Check Passed...', icon: <FiCheckCircle /> },
+    { label: 'Payout Initiated!', icon: <FiCheckCircle /> },
+  ];
 
   useEffect(() => {
     api.get('/claims/my').then(r => { setClaims(r.data); setLoading(false); });
+    
+    // Proactive Suggestion Mock Logic
+    setTimeout(() => {
+      setProactiveSuggestion({
+        type: 'Heavy Rainfall',
+        message: 'Heavy rain detected in your area. Would you like to initiate a claim for lost hours?'
+      });
+    }, 5000);
   }, []);
 
   // Capture geolocation when form opens
@@ -64,33 +82,47 @@ const ClaimsPage = () => {
   const submitClaim = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setSubmissionStep(0);
+
+    // Simulate Step Progression
+    const stepInterval = setInterval(() => {
+      setSubmissionStep(prev => Math.min(prev + 1, STEPS.length - 1));
+    }, 1200);
+
     try {
       // Remove UI-only fields before submitting
       const { locationStatus, locationName, accuracy, ...claimData } = form;
       
       const { data } = await api.post('/claims', claimData);
       
-      // Create claim object that includes the full response
+      // Complete the simulation if it finishes too fast
+      clearInterval(stepInterval);
+      setSubmissionStep(STEPS.length - 1);
+      await new Promise(res => setTimeout(res, 800)); // Final look at last step
+
+      // Create claim object
       const claimWithDetails = data.claim || data;
       setClaims([claimWithDetails, ...claims]);
       setShowForm(false);
+      setProactiveSuggestion(null);
       
-      // Display different messages based on auto-approval
       if (data.autoApprovalDetails?.auto_approved) {
         toast.success(
-          `✅ Claim auto-approved based on real-time API data!\n₹${claimWithDetails.payoutAmount} will be sent to your UPI 🎉`,
+          `✅ Claim auto-approved!\n₹${claimWithDetails.payoutAmount} will be sent to your UPI 🎉`,
           { duration: 5 }
         );
       } else {
         toast.success(
-          `Claim submitted for review using real-time ${data.autoApprovalDetails?.api_used || 'API'} data.`,
+          `Claim submitted for manual review.`,
           { duration: 5 }
         );
       }
     } catch (err) {
+      clearInterval(stepInterval);
       toast.error(err.response?.data?.message || 'Failed to submit claim');
     } finally {
       setSubmitting(false);
+      setSubmissionStep(0);
     }
   };
 
@@ -109,13 +141,33 @@ const ClaimsPage = () => {
     <div className="claims-page page-container">
       <div className="page-header-row">
         <div>
-          <h1>Claims</h1>
-          <p>Your income protection claim history</p>
+          <h1>Claims Management</h1>
+          <p>Track your income protection rewards</p>
         </div>
         <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
           {showForm ? '✕ Cancel' : '+ New Claim'}
         </button>
       </div>
+
+      {/* Proactive Suggestion Notification */}
+      {proactiveSuggestion && !showForm && (
+        <div className="proactive-alert card fade-up">
+          <div className="pa-content">
+            <FiAlertCircle size={24} color="#FFD166" />
+            <div>
+              <h4>{proactiveSuggestion.type} Detected!</h4>
+              <p>{proactiveSuggestion.message}</p>
+            </div>
+          </div>
+          <div className="pa-actions">
+            <button className="btn-primary btn-sm" onClick={() => {
+              setForm({ ...form, triggerType: proactiveSuggestion.type });
+              setShowForm(true);
+            }}>File Claim Now</button>
+            <button className="btn-secondary btn-sm" onClick={() => setProactiveSuggestion(null)}>Ignore</button>
+          </div>
+        </div>
+      )}
 
       {/* Claim Form */}
       {showForm && (
@@ -195,9 +247,24 @@ const ClaimsPage = () => {
               <FiAlertCircle size={14} color="#FFD166" />
               <span>GigShield covers income loss only. Vehicle damage and health costs are excluded.</span>
             </div>
-            <button type="submit" className="btn-primary" disabled={submitting || !form.latitude}>
-              {submitting ? 'Processing...' : 'Submit Claim'}
-            </button>
+            
+            {!submitting ? (
+              <button type="submit" className="btn-primary" disabled={submitting || !form.latitude}>
+                Submit Claim
+              </button>
+            ) : (
+              <div className="validation-stepper">
+                {STEPS.map((step, idx) => (
+                  <div key={idx} className={`step-item ${idx <= submissionStep ? 'active' : ''}`}>
+                    <div className="step-icon">
+                      {idx < submissionStep ? <FiCheckCircle color="#28C76F" /> : step.icon}
+                    </div>
+                    <span className="step-label">{step.label}</span>
+                    {idx === submissionStep && <div className="step-loader" />}
+                  </div>
+                ))}
+              </div>
+            )}
           </form>
         </div>
       )}

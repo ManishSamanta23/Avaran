@@ -10,10 +10,11 @@ The registration process is crucial for not only authenticating the Q-Commerce d
 ## 2. Insurance Policy Management
 The policy management system is the core self-service portal for workers to manage their parametric insurance coverage.
 * **How it works:** Our React frontend (`PolicyPage.jsx`, `UpgradePage.jsx`) provides a seamless interface connected to our Express backend (`backend/routes/policies.js`). 
-* **Worker Capabilities:** Workers can effortlessly:
-  * **View Plans:** Browse the curated Basic, Pro, and Max shields.
-  * **Pause/Resume:** The system allows workers to securely `Pause` their coverage if they are off duty, flipping the MongoDB status away from `Active` to freeze their premiums.
-  * **Upgrade:** In-place upgrades dynamically adjust their MongoDB policy document, expanding their `coverageEvents` array and increasing their maximum payout limit instantly.
+* **Shield Advisor & Savings Tracker:** The dashboard now includes:
+  * **Shield Advisor:** An AI-driven advisor that analyzes weather forecasts and suggests plan upgrades (e.g., suggesting a Max Shield in Mumbai during monsoon predictions).
+  * **Cumulative Savings Tracker:** A real-time analytics card that sums up all income recovered (payouts paid) in the last 30 days to reinforce platform value.
+  * **Pause/Resume:** The system allows workers to securely `Pause` their coverage if they are off duty, freezing their premiums instantly.
+  * **Upgrade:** In-place upgrades dynamically adjust their MongoDB policy document, expanding coverage instantly.
 
 ## 3. Dynamic Premium Calculation
 To satisfy the "AI Integration Example", the platform natively dynamically scales insurance premiums based on hyper-local risk assessment.
@@ -23,8 +24,8 @@ To satisfy the "AI Integration Example", the platform natively dynamically scale
 
 ## 4. Claims Management (Zero-Touch Automation)
 Parametric insurance requires that workers do not spend hours filling out manual damage forms. GigShield has evolved to a fully automated, data-driven validation system.
-* **How it works:** The Claims Dashboard is designed for a frictionless, zero-touch experience. A worker selects an active claim event and submits their hours lost.
-* **Geolocation & Real-Time Data:** The frontend (`frontend/src/pages/ClaimsPage.jsx`) now captures the worker's precise **GPS coordinates** at the time of claim. This data is passed to the backend for verification.
-* **The Payout Formula:** The `backend/routes/claims.js` instantly calculates their exact payout based on their registered average earnings and specific plan ratio capping it to safe maximums.
-* **Auto-Approval Safety Engine:** The platform now features a sophisticated `autoApprovalEngine.js` that connects to **OpenWeatherMap APIs**. It fetches real-time weather, precipitation, and AQI data for the worker's exact coordinates. 
-* **The Result:** If the external API data (e.g., rainfall > 20mm/hr or AQI > Level 4) confirms the disruption and the `getFraudScore()` logic remains low (e.g., < 0.2), the claim is instantly transitioned to **`Auto-Approved`** status. This eliminates bureaucratic manual reviews entirely and initiates a direct UPI payout transaction. If API data cannot verify the claim, it safely fails over to a manual review status.
+* **Proactive Prediction & Visual Pipeline:** The Claims Management system now features:
+  * **Proactive Suggestions:** The platform monitors live environmental conditions and sends "Automatic Claims Alerts" if a disruption is detected in the worker's zone, pre-filling the claim for them.
+  * **Visual Validation Stepper:** A multi-step UI that demonstrates the "Parametric Engine" at work—capturing GPS, querying OpenWeatherMap APIs, analyzing thresholds, and initiating payouts in real-time.
+  * **Recalibrated Thresholds:** The `autoApprovalEngine.js` uses hyper-realistic thresholds (e.g., Rainfall > 20mm/hr, Heat > 38°C, AQI > Level 4) calibrated for Indian urban gig worker safety.
+  * **The Result:** If API validation passes and fraud risk is low, the claim is instantly **`Auto-Approved`**, triggering an immediate UPI payout transaction without human intervention.

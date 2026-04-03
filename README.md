@@ -51,7 +51,7 @@ External disruptions — **heavy rain, flash floods, extreme heat, AQI spikes, l
 
 > Raju is a Blinkit partner in Andheri, Mumbai. On a Tuesday afternoon, the IMD issues a Red Alert for heavy rainfall. Roads begin to flood and Blinkit temporarily suspends delivery operations in Raju's zone. He loses 5 hours of work — approximately ₹500 in earnings.
 >
-> **With GigShield:** The system detects rainfall > 50mm/hr from the weather API and a Blinkit zone suspension signal. An automatic claim is triggered. Within 2 hours, ₹450 is credited to Raju's UPI account — no action required from him.
+> **With GigShield:** The system detects rainfall > 20mm/hr from the weather API and a Blinkit zone suspension signal. An automatic claim is triggered. Within 2 hours, ₹450 is credited to Raju's UPI account — no action required from him.
 
 ---
 
@@ -80,23 +80,23 @@ External disruptions — **heavy rain, flash floods, extreme heat, AQI spikes, l
 │                                                                   │
 │  [1] ONBOARDING          [2] RISK PROFILING    [3] POLICY         │
 │  ─────────────           ──────────────────    ──────────         │
-│  • Phone number          • Zone-based risk      • Weekly plan     │
-│  • Aadhaar-lite KYC        scoring (AI model)     selection       │
+│  • Phone number          • Zone-based risk      • Shield Advisor  │
+│  • Aadhaar-lite KYC        scoring (AI model)     (AI Recs)       │
 │  • Platform ID           • Historical earnings  • Premium calc    │
-│    (Zepto/Blinkit)         analysis             • UPI mandate     │
-│  • GPS home zone         • Disruption frequency   setup           │
+│    (Zepto/Blinkit)         analysis             • Savings Tracker │
+│  • GPS home zone         • Disruption frequency • UPI mandate     │
 │    selection               in user's area                         │
 │                                                                   │
 │  [4] LIVE MONITORING     [5] AUTO CLAIM         [6] PAYOUT        │
 │  ───────────────────     ─────────────          ───────           │
-│  • Weather APIs          • Trigger validated    • UPI Direct      │
-│  • AQI APIs              • Fraud check runs     • Wallet credit   │
-│  • Traffic/Zone APIs     • Claim auto-filed     • SMS notify      │
-│  • Platform status       • Worker notified      • Dashboard       │
+│  • Weather APIs          • Proactive Suggest    • UPI Direct      │
+│  • AQI APIs              • Visual Pipeline      • SMS notify      │
+│  • Traffic/Zone APIs     • Fraud check runs     • Dashboard       │
+│  • Platform status       • Worker notified                        │
 │                                                                   │
 │  [7] ANALYTICS DASHBOARD                                          │
 │  ──────────────────────                                           │
-│  Worker View: Active coverage, earnings protected this week       │
+│  Worker View: Shield Advisor, Protected income (30-day savings)   │
 │  Admin View: Loss ratios, fraud flags, predictive risk map        │
 │                                                                   │
 └─────────────────────────────────────────────────────────────────┘
@@ -148,10 +148,10 @@ Where:
 
 | # | Trigger Name | Data Source | Threshold | Payout Activation |
 |---|-------------|-------------|-----------|-------------------|
-| 1 | **Heavy Rainfall** | OpenWeatherMap / IMD API | > 35mm/hr OR Red Alert issued | Auto-claim for affected pin codes |
-| 2 | **Flash Flood / Waterlogging** | IMD Flood API + Google Maps Traffic | Road closure signals in zone | Auto-claim for workers in zone |
-| 3 | **Extreme Heat** | OpenWeatherMap | > 45°C AND heat advisory issued | Auto-claim if platform suspends ops |
-| 4 | **Severe Air Pollution** | CPCB / OpenAQ API | AQI > 350 (Severe+) | Auto-claim for affected city zones |
+| 1 | **Heavy Rainfall** | OpenWeatherMap / IMD API | > 20mm/hr OR Red Alert issued | Auto-claim for affected pin codes |
+| 2 | **Flash Flood / Waterlogging** | IMD Flood API + Google Maps Traffic | 40mm/3hr OR Road closure | Auto-claim for workers in zone |
+| 3 | **Extreme Heat** | OpenWeatherMap | > 38°C (Extreme Stress Threshold) | Auto-claim if platform suspends ops |
+| 4 | **Severe Air Pollution** | CPCB / OpenAQ API | PM2.5 > 250 OR AQI > Level 4 | Auto-claim for affected city zones |
 | 5 | **Curfew / Bandh / Strike** | Govt alerts + verified news API | Official restriction in zone | Manual review + auto-claim within 2 hrs |
 
 ### Trigger Logic
@@ -373,7 +373,7 @@ This risk profile determines their initial premium band and recommended plan.
 ## 🔗 Important Links
 
 - 📁 **Detailed Setup Guide:** [Setup Guide (SETUP.md)](SETUP.md)
-- 📝 **Phase 2 Implementation Details:** [Deliverables Breakdown (phrase1.md)](phrase1.md)
+- 📝 **Phase 2 Implementation Details:** [Deliverables Breakdown (PHRASE_1.md)](PHRASE_1.md)
 - 📁 **GitHub Repository:** `[Your GitHub Repo Link Here]`
 - 🎥 **Phase 1 Strategy Video:** [Watch Here][def]
 - 🖼 **Figma Wireframes:** `[Your Figma Link Here]`
