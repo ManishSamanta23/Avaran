@@ -6,22 +6,32 @@ const { protect } = require('../middleware/auth');
 const { z } = require('zod');
 const { validateClaimAgainstRealData } = require('../utils/autoApprovalEngine');
 
+/**
+ * Validation schema for claim submission.
+ * Geography coordinates are required for automated API verification.
+ */
 const claimSchema = z.object({
   triggerType: z.string({ required_error: 'Trigger type is required' }).min(1, 'Trigger type is required'),
-  triggerValue: z.any().optional(), // For reference only - NOT used for auto-approval
+  triggerValue: z.any().optional(),
   hoursLost: z.coerce.number().positive('Hours lost must be greater than 0').max(24, 'Hours lost cannot exceed 24'),
-  latitude: z.coerce.number().optional(), // Geolocation for API validation
-  longitude: z.coerce.number().optional() // Geolocation for API validation
+  latitude: z.coerce.number().optional(),
+  longitude: z.coerce.number().optional()
 });
 
-// Payout formula
+/**
+ * Payout Algorithm:
+ * Calculates total compensation based on hours lost, average earnings, and plan tier multiplier.
+ */
 const calculatePayout = (hoursLost, avgDailyHours, avgDailyEarnings, plan) => {
   const ratios = { Basic: 0.5, Pro: 0.75, Max: 1.0 };
   const ratio = ratios[plan] || 0.75;
   return Math.round((hoursLost / avgDailyHours) * avgDailyEarnings * ratio);
 };
 
-// Simple fraud score calculation
+/**
+ * Baseline Fraud Assessment:
+ * Assigns a risk score to flag anomalous claim behaviors (e.g., extreme hours lost).
+ */
 const getFraudScore = (worker, triggerType, hoursLost) => {
   let score = 0;
   if (hoursLost > 12) score += 0.4;
@@ -31,10 +41,11 @@ const getFraudScore = (worker, triggerType, hoursLost) => {
 
 const AUTO_APPROVABLE_TRIGGERS = ['Heavy Rainfall', 'Flash Flood', 'Extreme Heat', 'Cyclone', 'Air Pollution'];
 
-
-// @route POST /api/claims
-// @desc Submit a new claim with real-time data validation
-// @access Private
+/**
+ * @route   POST /api/claims
+ * @desc    Submits a claim and triggers the automated parametric validation pipeline.
+ * @access  Private
+ */
 router.post('/', protect, async (req, res) => {
   try {
     const parsed = claimSchema.safeParse(req.body);
@@ -42,114 +53,108 @@ router.post('/', protect, async (req, res) => {
     
     const { triggerType, triggerValue, hoursLost, latitude, longitude } = parsed.data;
     
-    // Get the worker's active policy
     const policy = await Policy.findOne({ worker: req.worker._id, status: 'Active' });
-    if (!policy) return res.status(400).json({ message: 'No active policy found' });
+    if (!policy) return res.status(400).json({ message: 'No active policy found for this worker' });
 
-    // Check if this trigger type is covered by the policy
     if (!policy.coverageEvents.includes(triggerType))
-      return res.status(400).json({ message: 'This trigger is not covered by your plan' });
+      return res.status(400).json({ message: 'The selected disruption event is not covered by current plan tier' });
 
-    // Calculate payout based on worker's earnings and policy
     const avgDailyEarnings = req.worker.avgWeeklyEarnings / 7;
     const payoutAmount = Math.min(
       calculatePayout(hoursLost, req.worker.avgDailyHours, avgDailyEarnings, policy.plan),
       policy.maxWeeklyPayout
     );
 
-    // Calculate fraud risk
     const fraudScore = getFraudScore(req.worker, triggerType, hoursLost);
 
-    // IMPORTANT: Auto-approval is based on REAL API data, not user-entered values
     let status = 'Under Review';
     let autoApprovalDetails = null;
     let transactionId = null;
 
-    // If geolocation data is provided, validate against real-time APIs
+    /**
+     * Automated Verification Handshake:
+     * Cross-references claimed disruption with external atmospheric monitoring if 
+     * geolocation is provided and fraud risk is low.
+     */
     if (latitude && longitude && AUTO_APPROVABLE_TRIGGERS.includes(triggerType) && fraudScore < 0.2) {
       try {
-        console.log(`🔍 Validating claim (${triggerType}) against real API data at [${latitude}, ${longitude}]`);
-        
         const validationResult = await validateClaimAgainstRealData(triggerType, latitude, longitude);
         autoApprovalDetails = validationResult;
 
         if (validationResult.success && validationResult.auto_approved) {
           status = 'Auto-Approved';
           transactionId = 'TXN' + Date.now();
-          console.log(`✅ Claim AUTO-APPROVED based on API validation: ${validationResult.decision_reason}`);
         } else {
           status = 'Under Review';
-          console.log(`⚠️ Claim UNDER REVIEW: ${validationResult.decision_reason}`);
         }
       } catch (validationError) {
-        console.error('❌ API validation failed:', validationError.message);
+        console.error('API Verification Fault:', validationError.message);
         status = 'Under Review';
         autoApprovalDetails = {
           success: false,
           error: validationError.message,
-          decision_reason: 'Could not validate against real-time API data. Moving to manual review.'
+          decision_reason: 'Automated validation failed. Routed to manual review.'
         };
       }
     } else {
-      // If no geolocation or invalid trigger type, move to manual review
+      // Logic for fallback to manual review status
       if (!latitude || !longitude) {
         autoApprovalDetails = {
           success: false,
-          error: 'Geolocation not provided',
-          decision_reason: 'Geolocation coordinates required for automated validation'
+          error: 'Geolocation Missing',
+          decision_reason: 'Precise coordinates required for real-time verification'
         };
       } else if (!AUTO_APPROVABLE_TRIGGERS.includes(triggerType)) {
         autoApprovalDetails = {
           success: false,
-          error: 'Manual review required',
-          decision_reason: `Trigger type '${triggerType}' requires manual verification`
+          error: 'Manual Verification Required',
+          decision_reason: `Event type requires human verification of external records`
         };
       } else if (fraudScore >= 0.2) {
         autoApprovalDetails = {
           success: false,
-          error: 'High fraud risk',
-          decision_reason: `Fraud risk score (${fraudScore.toFixed(2)}) exceeds threshold`
+          error: 'Fraud Risk Flag',
+          decision_reason: `Internal risk score (${fraudScore.toFixed(2)}) exceeds automation threshold`
         };
       }
     }
 
-    // Create the claim record
-    const claimData = {
+    const claim = await Claim.create({
       worker: req.worker._id,
       policy: policy._id,
       triggerType,
-      triggerValue, // Reference only - NOT used for auto-approval
+      triggerValue, 
       hoursLost,
       payoutAmount,
       fraudScore,
       status,
       payoutTransactionId: transactionId,
       isAutoClaim: status === 'Auto-Approved',
-      autoApprovalDetails: autoApprovalDetails // Store validation details
-    };
+      autoApprovalDetails: autoApprovalDetails 
+    });
 
-    const claim = await Claim.create(claimData);
-
-    // If auto-approved, update policy payout tracking
     if (status === 'Auto-Approved') {
       policy.totalPayoutReceived = (policy.totalPayoutReceived || 0) + payoutAmount;
       await policy.save();
     }
 
-    // Return claim with validation details
     res.status(201).json({
-      message: `Claim submitted. Status: ${status}`,
+      message: `Claim processed successfully: ${status}`,
       claim: claim,
       autoApprovalDetails: autoApprovalDetails
     });
 
   } catch (err) {
-    console.error('❌ Claim submission error:', err.message);
-    res.status(500).json({ message: err.message });
+    console.error('Claim Submission Failure:', err.message);
+    res.status(500).json({ message: 'Internal server fault during claim processing' });
   }
 });
 
-// @route GET /api/claims/my
+/**
+ * @route   GET /api/claims/my
+ * @desc    Retrieves claim history for the authenticated worker.
+ * @access  Private
+ */
 router.get('/my', protect, async (req, res) => {
   try {
     const claims = await Claim.find({ worker: req.worker._id })
@@ -157,7 +162,7 @@ router.get('/my', protect, async (req, res) => {
       .sort('-claimDate');
     res.json(claims);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: 'Failed to retrieve claim history: ' + err.message });
   }
 });
 

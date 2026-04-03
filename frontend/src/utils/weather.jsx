@@ -1,16 +1,14 @@
 /**
- * Weather and Environmental Data API Integration
- * Uses OpenWeatherMap and public APIs for weather/AQI data
+ * Weather & Environmental Data Integration:
+ * Interacts with backend weather services to retrieve historical and 
+ * real-time atmospheric metrics (Precipitation, AQI, Heat).
  */
 
 import api from './api';
 
 /**
- * Get weather data for given coordinates
- * Calls the backend which handles API key securely
- * @param {number} latitude
- * @param {number} longitude
- * @returns {Promise<{temp, feels_like, humidity, pressure, weather, wind_speed, wind_gust}>}
+ * getWeather:
+ * Fetches current atmospheric conditions for coordinates via secure backend proxy.
  */
 export const getWeather = async (latitude, longitude) => {
   try {
@@ -19,16 +17,14 @@ export const getWeather = async (latitude, longitude) => {
     });
     return data;
   } catch (err) {
-    console.error('Failed to fetch weather:', err.response?.data?.message || err.message);
+    console.error('Weather Retrieval Failure:', err.response?.data?.message || err.message);
     throw err;
   }
 };
 
 /**
- * Get Air Quality Index (AQI) for given coordinates
- * @param {number} latitude
- * @param {number} longitude
- * @returns {Promise<{aqi, pm25, pm10, no2, o3, so2, co}>}
+ * getAQI:
+ * Retrieves Air Quality Index and granular pollutant data (PM2.5, PM10).
  */
 export const getAQI = async (latitude, longitude) => {
   try {
@@ -37,16 +33,14 @@ export const getAQI = async (latitude, longitude) => {
     });
     return data;
   } catch (err) {
-    console.error('Failed to fetch AQI:', err.response?.data?.message || err.message);
+    console.error('AQI Retrieval Failure:', err.response?.data?.message || err.message);
     throw err;
   }
 };
 
 /**
- * Get weather alerts for a location
- * @param {number} latitude
- * @param {number} longitude
- * @returns {Promise<Array>}
+ * getWeatherAlerts:
+ * Retrieves official meteorological alerts for specified coordinates.
  */
 export const getWeatherAlerts = async (latitude, longitude) => {
   try {
@@ -55,17 +49,14 @@ export const getWeatherAlerts = async (latitude, longitude) => {
     });
     return data;
   } catch (err) {
-    console.error('Failed to fetch weather alerts:', err);
+    console.error('Alert Retrieval Failure:', err);
     throw err;
   }
 };
 
 /**
- * Validate a claim against real-time weather/AQI data
- * @param {String} triggerType - 'Heavy Rainfall', 'Severe AQI', etc.
- * @param {Number} latitude
- * @param {Number} longitude
- * @returns {Promise<{isValid: boolean, confidence: number, data: Object}>}
+ * validateClaimAgainstWeather:
+ * Backend-proxied verification to cross-check claim disruptors with API logs.
  */
 export const validateClaimAgainstWeather = async (triggerType, latitude, longitude) => {
   try {
@@ -76,16 +67,14 @@ export const validateClaimAgainstWeather = async (triggerType, latitude, longitu
     });
     return data;
   } catch (err) {
-    console.error('Failed to validate claim:', err);
+    console.error('Claim Validation Handshake Error:', err);
     throw err;
   }
 };
 
 /**
- * Get live triggers/alerts for user's current location
- * @param {number} latitude
- * @param {number} longitude
- * @returns {Promise<Array>}
+ * getLiveTriggersForLocation:
+ * Returns any active parametric disruption triggers detected in worker's current zone.
  */
 export const getLiveTriggersForLocation = async (latitude, longitude) => {
   try {
@@ -94,13 +83,14 @@ export const getLiveTriggersForLocation = async (latitude, longitude) => {
     });
     return data;
   } catch (err) {
-    console.error('Failed to fetch live triggers:', err);
+    console.error('Live Trigger Analysis Failure:', err);
     throw err;
   }
 };
 
 /**
- * Format weather data for display
+ * formatWeatherDisplay:
+ * Utility for mapping raw weather metrics to human-readable UI strings.
  */
 export const formatWeatherDisplay = (weather) => {
   return {
@@ -113,7 +103,8 @@ export const formatWeatherDisplay = (weather) => {
 };
 
 /**
- * Format AQI data for display
+ * formatAQIDisplay:
+ * Maps numerical AQI levels to qualitative health assessments and UI color tokens.
  */
 export const formatAQIDisplay = (aqi) => {
   let aqiLevel = 'Good';

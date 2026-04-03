@@ -1,5 +1,10 @@
 import axios from 'axios';
 
+/**
+ * API Service:
+ * Base Axios instance configured for the GigShield backend. 
+ * Includes an interceptor to append JWT credentials to outgoing requests.
+ */
 const api = axios.create({ baseURL: '/api' });
 
 api.interceptors.request.use((config) => {

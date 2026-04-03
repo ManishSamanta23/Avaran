@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+/**
+ * Policy Schema:
+ * Defines the active insurance contract between a worker and the GigShield platform.
+ * Tracks coverage limits, personalized premiums, and financial balances.
+ */
 const policySchema = new mongoose.Schema({
   worker: { type: mongoose.Schema.Types.ObjectId, ref: 'Worker', required: true },
   plan: { type: String, enum: ['Basic', 'Pro', 'Max'], required: true },
@@ -14,7 +19,11 @@ const policySchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// Set next billing date to next Monday
+/**
+ * Lifecycle Hook:
+ * Automatically calculates the next billing cycle start (following Monday)
+ * upon policy creation.
+ */
 policySchema.pre('save', function (next) {
   if (!this.nextBillingDate) {
     const now = new Date();

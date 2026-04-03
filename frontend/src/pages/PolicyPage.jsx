@@ -6,6 +6,10 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import './PolicyPage.css';
 
+/**
+ * Static Configuration:
+ * Defines the baseline insurance tiers and their associated payouts/events.
+ */
 const PLANS = [
   { name: 'Basic', premium: 29, payout: 800, color: '#63B3ED',
     events: ['Heavy Rainfall', 'Flash Flood'] },
@@ -15,11 +19,19 @@ const PLANS = [
     events: ['Heavy Rainfall', 'Flash Flood', 'Extreme Heat', 'Severe AQI', 'Curfew/Bandh'] },
 ];
 
+/**
+ * Custom Pricing Logic:
+ * Adjusts the standard weekly premium based on the worker's unique risk profile.
+ */
 const calculatePremium = (base, riskScore) => {
   if (riskScore == null) return base;
   return base + Math.round((riskScore - 0.55) * 40);
 };
 
+/**
+ * Policy Management Dashboard
+ * Displays active coverage details, premium settings, and AI-driven shield advice.
+ */
 const PolicyPage = () => {
   const { worker } = useAuth();
   const navigate = useNavigate();
@@ -29,6 +41,7 @@ const PolicyPage = () => {
   const [activating, setActivating] = useState(null);
 
   useEffect(() => {
+    // Aggregated data fetch for active policy and claim history
     const fetchData = async () => {
       try {
         const [policyRes, claimsRes] = await Promise.all([
@@ -40,7 +53,7 @@ const PolicyPage = () => {
         setPolicy(activePolicy || policyRes.data[0] || null);
         setClaims(claimsRes.data);
       } catch (err) {
-        toast.error('Failed to load policy data');
+        toast.error('Could not retrieve policy records');
       } finally {
         setLoading(false);
       }
@@ -48,6 +61,10 @@ const PolicyPage = () => {
     fetchData();
   }, []);
 
+  /**
+   * Analytics Calculation:
+   * Aggregates total income recovered via parametric payouts in the trailing 30 days.
+   */
   const totalSaved30Days = claims
     .filter(c => ['Auto-Approved', 'Approved', 'Paid'].includes(c.status))
     .filter(c => {
@@ -58,9 +75,13 @@ const PolicyPage = () => {
     })
     .reduce((sum, c) => sum + c.payoutAmount, 0);
 
+  /**
+   * Shield Advisor (Predictive Logic):
+   * Analyzes worker constraints (city, current plan) and alerts to impending 
+   * environmental risks to suggest optimal coverage upgrades.
+   */
   const getShieldAdvice = () => {
     const city = worker?.city || 'your city';
-    // Mock logic for forecast-driven advice
     if (policy?.plan === 'Max') return null;
     
     const highRiskCities = ['Mumbai', 'Delhi', 'Chennai', 'Kolkata'];
@@ -68,12 +89,12 @@ const PolicyPage = () => {
     
     if (isHighRiskCity) {
       return {
-        message: `Heavy rainfall predicted in ${city} next week. We recommend the Max Shield for complete coverage against waterlogging and flood disruptions.`,
+        message: `Increased disruption risk detected in ${city}. Upgrade to Max Shield for full recovery against heavy waterlogging.`,
         targetPlan: 'Max'
       };
     } else if (policy?.plan === 'Basic' || !policy) {
       return {
-        message: `AQI fluctuations detected in ${city}. Upgrade to Pro Shield to protect your earnings from pollution-related zone shutdowns.`,
+        message: `AQI alerts common in ${city}. Pro Shield is recommended to cover pollution-related shutdowns.`,
         targetPlan: 'Pro'
       };
     }
@@ -82,26 +103,34 @@ const PolicyPage = () => {
 
   const advice = getShieldAdvice();
 
+  /**
+   * Policy Orchestration:
+   * Manages plan activation, state transitions, and asynchronous operations.
+   */
   const activate = async (planName) => {
     setActivating(planName);
     try {
       const { data } = await api.post('/policies', { plan: planName });
       setPolicy(data);
-      toast.success(`${planName} Shield activated! You're now protected 🛡️`);
+      toast.success(`${planName} coverage successfully activated. 🛡️`);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to activate');
+      toast.error('Plan activation fault: ' + (err.response?.data?.message || 'Server error'));
     } finally {
       setActivating(null);
     }
   };
 
+  /**
+   * Coverage Lifecycle Management:
+   * Toggles the policy status between 'Active' and 'Paused'.
+   */
   const togglePause = async () => {
     try {
       const { data } = await api.put(`/policies/${policy._id}/pause`);
       setPolicy(data);
-      toast.success(data.status === 'Paused' ? 'Coverage paused' : 'Coverage resumed!');
+      toast.success(data.status === 'Paused' ? 'Coverage temporarily suspended' : 'Coverage resumed');
     } catch (err) {
-      toast.error('Failed to update policy');
+      toast.error('Failed to update coverage lifecycle state');
     }
   };
 
@@ -110,20 +139,19 @@ const PolicyPage = () => {
   return (
     <div className="policy-page page-container">
       <div className="page-header">
-        <h1>My Protection</h1>
-        <p>Manage your weekly income security & track protected earnings</p>
+        <h1>Safety & Rewards</h1>
+        <p>Manage your weekly income protection and track recovered earnings.</p>
       </div>
 
-      {/* Savings Tracker & Advisor Row */}
       <div className="policy-highlights">
         <div className="savings-tracker-card card">
           <div className="st-header">
             <FiTrendingUp color="#00C49F" size={20} />
-            <h4>Income Protected (Last 30 Days)</h4>
+            <h4>Lifetime Impact (Last 30 Days)</h4>
           </div>
           <div className="st-body">
             <span className="st-amount">₹{totalSaved30Days.toLocaleString()}</span>
-            <span className="st-label">Recovered from disruptions</span>
+            <span className="st-label">Recovered Protected Earnings</span>
           </div>
         </div>
 
@@ -139,14 +167,13 @@ const PolicyPage = () => {
                 if (policy) navigate(`/upgrade?plan=${advice.targetPlan.toLowerCase()}`);
                 else document.getElementById('plans-section').scrollIntoView({ behavior: 'smooth' });
               }}>
-                {policy ? `Upgrade to ${advice.targetPlan}` : `View ${advice.targetPlan} Plan`}
+                {policy ? `Upgrade to ${advice.targetPlan}` : `Select ${advice.targetPlan}`}
               </button>
             ) : null}
           </div>
         )}
       </div>
 
-      {/* Active Policy Card */}
       {policy && (
         <div className="active-policy card">
           <div className="ap-header">
@@ -171,20 +198,20 @@ const PolicyPage = () => {
               <strong>₹{policy.weeklyPremium}</strong>
             </div>
             <div className="ap-stat">
-              <span>Max Weekly Payout</span>
+              <span>Max Benefit/Week</span>
               <strong>₹{policy.maxWeeklyPayout.toLocaleString()}</strong>
             </div>
             <div className="ap-stat">
-              <span>Total Paid Out</span>
+              <span>Total Recovery</span>
               <strong>₹{policy.totalPayoutReceived.toLocaleString()}</strong>
             </div>
             <div className="ap-stat">
-              <span>Next Billing</span>
+              <span>Next Renewal</span>
               <strong>{new Date(policy.nextBillingDate).toLocaleDateString('en-IN')}</strong>
             </div>
           </div>
           <div className="ap-events">
-            <p>Covered Events:</p>
+            <p>Covered External Events:</p>
             <div className="event-tags">
               {policy.coverageEvents.map(e => (
                 <span key={e} className="event-tag"><FiCheckCircle size={12} /> {e}</span>
@@ -194,24 +221,23 @@ const PolicyPage = () => {
         </div>
       )}
 
-      {/* Plan Selection */}
       {!policy && (
         <div id="plans-section">
           <div className="plans-intro">
-            <h2>Choose Your Weekly Plan</h2>
-            <p>Premium auto-deducts every Monday via UPI. Cancel anytime.</p>
+            <h2>Select Coverage Tier</h2>
+            <p>Weekly premiums are auto-deducted via UPI linked account.</p>
           </div>
           <div className="plans-grid-policy">
             {PLANS.map(p => {
               const dynamicPremium = calculatePremium(p.premium, worker?.riskScore);
               return (
               <div key={p.name} className={`plan-card-policy card ${p.popular ? 'popular' : ''}`}>
-                {p.popular && <div className="popular-badge">Most Popular</div>}
+                {p.popular && <div className="popular-badge">Best Choice</div>}
                 <h3 style={{ color: p.color }}>{p.name} Shield</h3>
                 <div className="plan-price-big">
                   <strong>₹{dynamicPremium}</strong><span>/week</span>
                 </div>
-                <p className="payout-label">Up to ₹{p.payout.toLocaleString()} payout/week</p>
+                <p className="payout-label">Up to ₹{p.payout.toLocaleString()} protection</p>
                 <ul className="plan-events">
                   {p.events.map(e => (
                     <li key={e}><FiCheckCircle style={{ color: p.color }} size={14} /> {e}</li>
@@ -224,7 +250,7 @@ const PolicyPage = () => {
                   onClick={() => activate(p.name)}
                   disabled={activating === p.name}
                 >
-                  {activating === p.name ? 'Activating...' : `Activate ${p.name}`}
+                  {activating === p.name ? 'Processing...' : `Activate ${p.name}`}
                 </button>
               </div>
             )})}
@@ -232,21 +258,20 @@ const PolicyPage = () => {
         </div>
       )}
 
-      {/* Upgrade Options */}
       {policy && (
         <div className="upgrade-section">
-          <h3>Upgrade Your Plan</h3>
-          <p>Get more coverage for a few rupees more per week</p>
+          <h3>Upgrade Tier</h3>
+          <p>Expand your protection scope for increased income security</p>
           <div className="upgrade-cards">
             {PLANS.filter(p => p.name !== policy.plan).map(p => {
               const dynamicPremium = calculatePremium(p.premium, worker?.riskScore);
               return (
               <div key={p.name} className="upgrade-card card">
                 <h4 style={{ color: p.color }}>{p.name} Shield</h4>
-                <p className="upgrade-price">₹{dynamicPremium}/week · ₹{p.payout.toLocaleString()} max</p>
+                <p className="upgrade-price">₹{dynamicPremium}/week · ₹{p.payout.toLocaleString()} limit</p>
                 <button className="btn-outline-orange"
                   onClick={() => navigate(`/upgrade?plan=${p.name.toLowerCase()}`)}>
-                  Upgrade to {p.name}
+                  Switch to {p.name}
                 </button>
               </div>
             )})}

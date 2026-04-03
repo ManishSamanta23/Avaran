@@ -1,15 +1,18 @@
 /**
- * Geolocation Utility - Get user's current location
+ * Geolocation Service:
+ * Provides unified access to browser-level coordinates and higher-level
+ * address resolution via OpenStreetMap Nominatim.
  */
 
 /**
- * Get current position using browser Geolocation API
- * @returns {Promise<{latitude: number, longitude: number, locationName: string, city: string, state: string, country: string, accuracy: number}>}
+ * getCurrentLocation:
+ * Captures the current device position and initiates a reverse-geocoding 
+ * handshake to resolve coordinates into a human-readable city/state.
  */
 export const getCurrentLocation = () => {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error('Geolocation is not supported by this browser'));
+      reject(new Error('Geolocation services are unavailable in this environment'));
       return;
     }
 
@@ -24,11 +27,11 @@ export const getCurrentLocation = () => {
         const { latitude, longitude, accuracy } = position.coords;
         
         try {
-          // Reverse geocode to get location details
+          // Resolve raw coordinates to geographic entities
           const locationDetails = await reverseGeocode(latitude, longitude);
           resolve({ latitude, longitude, ...locationDetails, accuracy });
         } catch (err) {
-          // Return coordinates even if geocoding fails
+          // Return raw coordinates as fallback if resolution fails
           resolve({ 
             latitude, 
             longitude, 
@@ -41,7 +44,7 @@ export const getCurrentLocation = () => {
         }
       },
       (error) => {
-        console.error('Geolocation error:', error);
+        console.error('Critical Geolocation Fault:', error);
         reject(error);
       },
       options
@@ -50,13 +53,12 @@ export const getCurrentLocation = () => {
 };
 
 /**
- * Reverse geocode coordinates to get full location details
- * Uses OpenWeatherMap Geocoding API (free tier supports reverse geocoding)
- * Falls back to OpenStreetMap Nominatim if needed
+ * reverseGeocode:
+ * Direct interface with Nominatim OSM API to map lat/long to 
+ * specific urban address components.
  */
 const reverseGeocode = async (latitude, longitude) => {
   try {
-    // Use OpenStreetMap Nominatim (free, no API key required)
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=12&addressdetails=1`,
       {
@@ -66,12 +68,10 @@ const reverseGeocode = async (latitude, longitude) => {
     const data = await response.json();
     const address = data.address || {};
 
-    // Extract location components
     const city = address.city || address.town || address.village || address.county || '';
     const state = address.state || address.province || '';
     const country = address.country || '';
 
-    // Build location name
     const locationParts = [city, state, country].filter(part => part && part.trim());
     const locationName = locationParts.length > 0 ? locationParts.join(', ') : null;
 
@@ -82,7 +82,7 @@ const reverseGeocode = async (latitude, longitude) => {
       country: country || null
     };
   } catch (err) {
-    console.error('Reverse geocoding error:', err);
+    console.error('Reverse Geocoding Failure:', err);
     return {
       locationName: null,
       city: null,
@@ -93,13 +93,12 @@ const reverseGeocode = async (latitude, longitude) => {
 };
 
 /**
- * Watch user's position continuously
- * @param {Function} callback - Called with location updates
- * @returns {number} watchId - Use to stop watching via clearWatch
+ * watchLocation:
+ * Creates a stream for monitoring persistent movement.
  */
 export const watchLocation = (callback) => {
   if (!navigator.geolocation) {
-    console.error('Geolocation is not supported');
+    console.error('Movement monitoring unavailable');
     return null;
   }
 
@@ -116,15 +115,15 @@ export const watchLocation = (callback) => {
       callback({ latitude, longitude, ...locationDetails, accuracy });
     },
     (error) => {
-      console.error('Watch position error:', error);
+      console.error('Watch Stream Failure:', error);
     },
     options
   );
 };
 
 /**
- * Stop watching location
- * @param {number} watchId - ID returned from watchLocation
+ * stopWatchingLocation:
+ * Destroys the active movement monitor stream.
  */
 export const stopWatchingLocation = (watchId) => {
   if (watchId && navigator.geolocation) {
@@ -133,10 +132,11 @@ export const stopWatchingLocation = (watchId) => {
 };
 
 /**
- * Calculate distance between two coordinates (in km)
+ * calculateDistance:
+ * Computes the great-circle distance between two points using the Haversine formula (km).
  */
 export const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Earth's radius in km
+  const R = 6371; 
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a =

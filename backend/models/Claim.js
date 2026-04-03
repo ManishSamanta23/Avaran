@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+/**
+ * Claim Schema:
+ * Data model for submitted disruption claims, including worker and policy relationships,
+ * parametric trigger metrics, and automated validation results.
+ */
 const claimSchema = new mongoose.Schema({
   worker: { type: mongoose.Schema.Types.ObjectId, ref: 'Worker', required: true },
   policy: { type: mongoose.Schema.Types.ObjectId, ref: 'Policy', required: true },
@@ -10,7 +15,7 @@ const claimSchema = new mongoose.Schema({
   },
   triggerValue: { 
     type: String,
-    description: 'User-entered value for reference only - NOT used for auto-approval'
+    description: 'User-entered value (for audit only)'
   },
   hoursLost: { type: Number, required: true },
   payoutAmount: { type: Number, required: true },
@@ -21,8 +26,10 @@ const claimSchema = new mongoose.Schema({
   },
   fraudScore: { type: Number, default: 0 },
   /**
-   * Storage for auto-approval validation details
-   * Includes API data used, threshold comparison, and decision reasoning
+   * Automated Approval Handshake:
+   * Stores granular verification data from the parametric engine.
+   * Tracks whether claimed environmental disruption matched actual 
+   * atmospheric records at time/point of claim.
    */
   autoApprovalDetails: {
     success: { type: Boolean, default: false },
@@ -32,18 +39,17 @@ const claimSchema = new mongoose.Schema({
     checked_against_api: { type: Boolean, default: false },
     api_used: { type: String },
     error: { type: String },
-    // Validation data from API
     validation_data: {
       approved: { type: Boolean },
       metric: { type: String },
       actual_value: { type: mongoose.Schema.Types.Mixed },
-      actual_aqi_level: { type: Number }, // For AQI claims
-      actual_pm25: { type: Number }, // For AQI claims
+      actual_aqi_level: { type: Number },
+      actual_pm25: { type: Number },
       threshold: { type: mongoose.Schema.Types.Mixed },
       unit: { type: String },
       condition: { type: String },
       weather_description: { type: String },
-      components: { type: mongoose.Schema.Types.Mixed } // For AQI
+      components: { type: mongoose.Schema.Types.Mixed }
     },
     timestamp: { type: Date }
   },

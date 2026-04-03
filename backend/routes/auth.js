@@ -4,6 +4,9 @@ const jwt = require('jsonwebtoken');
 const Worker = require('../models/Worker');
 const { z } = require('zod');
 
+/**
+ * Validation schemas for authentication payloads.
+ */
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   phone: z.string().min(10, 'Phone must be at least 10 digits'),
@@ -22,10 +25,17 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters')
 });
 
+/**
+ * Generates a non-expiring JWT for the worker session.
+ */
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
-// @route POST /api/auth/register
+/**
+ * @route   POST /api/auth/register
+ * @desc    Registers a new gig worker and initializes their risk profile.
+ * @access  Public
+ */
 router.post('/register', async (req, res) => {
   try {
     const parsed = registerSchema.safeParse(req.body);
@@ -35,15 +45,24 @@ router.post('/register', async (req, res) => {
       avgWeeklyEarnings, avgDailyHours, password } = parsed.data;
 
     const exists = await Worker.findOne({ phone });
-    if (exists) return res.status(400).json({ message: 'Phone already registered' });
+    if (exists) return res.status(400).json({ message: 'Phone number already registered' });
 
-    // Simple risk scoring based on city
+    /**
+     * Initial Risk Scoring:
+     * Assigns baseline risk based on historical disruption data for the city.
+     */
     const highRiskCities = ['Mumbai', 'Delhi', 'Chennai'];
     const medRiskCities = ['Bengaluru', 'Kolkata', 'Hyderabad'];
     let riskScore = 0.3;
     let riskZone = 'Low';
-    if (highRiskCities.includes(city)) { riskScore = 0.8; riskZone = 'High'; }
-    else if (medRiskCities.includes(city)) { riskScore = 0.55; riskZone = 'Medium'; }
+    
+    if (highRiskCities.includes(city)) { 
+      riskScore = 0.8; 
+      riskZone = 'High'; 
+    } else if (medRiskCities.includes(city)) { 
+      riskScore = 0.55; 
+      riskZone = 'Medium'; 
+    }
 
     const worker = await Worker.create({
       name, phone, email, platform, platformId, city, pincode,
@@ -63,11 +82,15 @@ router.post('/register', async (req, res) => {
       token: generateToken(worker._id)
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: 'Registration server fault: ' + err.message });
   }
 });
 
-// @route POST /api/auth/login
+/**
+ * @route   POST /api/auth/login
+ * @desc    Authenticates a gig worker and returns a session token.
+ * @access  Public
+ */
 router.post('/login', async (req, res) => {
   try {
     const parsed = loginSchema.safeParse(req.body);
@@ -75,6 +98,7 @@ router.post('/login', async (req, res) => {
 
     const { phone, password } = parsed.data;
     const worker = await Worker.findOne({ phone });
+
     if (worker && (await worker.matchPassword(password))) {
       res.json({
         _id: worker._id,
@@ -87,10 +111,10 @@ router.post('/login', async (req, res) => {
         token: generateToken(worker._id)
       });
     } else {
-      res.status(401).json({ message: 'Invalid phone or password' });
+      res.status(401).json({ message: 'Invalid credentials provided' });
     }
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: 'Authentication server fault: ' + err.message });
   }
 });
 
