@@ -6,7 +6,7 @@
 .active-policy { margin-bottom: 32px; border-color: rgba(255,107,53,0.2); }
 .ap-header { display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-.ap-title { display: flex; align-items: center; gap: 14px; }
+.ap-title { display: flex; align-items: center; gap: 6px; }
 .ap-title h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
 .ap-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 16px; margin-bottom: 20px; }

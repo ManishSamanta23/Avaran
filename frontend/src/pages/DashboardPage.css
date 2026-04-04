@@ -41,7 +41,7 @@
   flex-wrap: wrap;
   gap: 16px;
 }
-.policy-info { display: flex; align-items: center; gap: 16px; }
+.policy-info { display: flex; align-items: center; gap: 8px; }
 .policy-info h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
 .policy-info p { font-size: 13px; color: var(--text-muted); }
 .policy-meta { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-muted); }
