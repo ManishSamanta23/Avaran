@@ -11,7 +11,7 @@ const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   phone: z.string().min(10, 'Phone must be at least 10 digits'),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  platform: z.enum(['Zepto', 'Blinkit', 'Other'], { errorMap: () => ({ message: 'Platform must be Zepto, Blinkit, or Other' }) }),
+  platform: z.enum(['Zepto', 'Blinkit', 'Both'], { errorMap: () => ({ message: 'Platform must be Zepto, Blinkit, or Both' }) }),
   platformId: z.string().optional(),
   city: z.string().min(2, 'City is required'),
   pincode: z.string().min(6, 'Pincode must be at least 6 characters'),
