@@ -20,6 +20,7 @@ app.use('/api/claims', require('./routes/claims'));
 app.use('/api/triggers', require('./routes/triggers'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/weather', require('./routes/weather'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {

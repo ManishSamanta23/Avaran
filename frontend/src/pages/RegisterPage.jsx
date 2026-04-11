@@ -152,6 +152,20 @@ const RegisterPage = () => {
           )}
         </form>
         <p className="auth-switch">Already have an account? <Link to="/login">Login</Link></p>
+        <p style={{ 
+          textAlign: 'center', 
+          marginTop: '8px',
+          fontSize: '12px',
+          color: 'rgba(255,255,255,0.3)' 
+        }}>
+          Are you an admin?{' '}
+          <a href="/admin/register" style={{ 
+            color: 'rgba(255,255,255,0.45)',
+            textDecoration: 'underline' 
+          }}>
+            Register as Admin
+          </a>
+        </p>
       </div>
     </div>
   );

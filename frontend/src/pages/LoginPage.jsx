@@ -67,6 +67,11 @@ const LoginPage = () => {
         <p className="auth-switch">
           New to Avaran? <Link to="/register">Create account</Link>
         </p>
+        <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px' }}>
+          <Link to="/admin/login" style={{ color: 'rgba(255, 107, 53, 0.6)', textDecoration: 'none' }}>
+            Admin Login
+          </Link>
+        </p>
       </div>
     </div>
   );

@@ -1,0 +1,39 @@
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--navy);
+}
+
+.admin-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scrollbar styling */
+.admin-main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-main::-webkit-scrollbar-track {
+  background: var(--navy);
+}
+
+.admin-main::-webkit-scrollbar-thumb {
+  background: var(--navy-mid);
+  border-radius: 4px;
+}
+
+.admin-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 768px) {
+  .admin-container {
+    flex-direction: column;
+  }
+
+  .admin-main {
+    min-height: calc(100vh - 70px);
+  }
+}
