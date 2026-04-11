@@ -3,11 +3,12 @@ const router = express.Router();
 const Worker = require('../models/Worker');
 const Policy = require('../models/Policy');
 const Claim = require('../models/Claim');
+const { protectAdmin } = require('./adminAuth');
 
 /**
  * Admin Routes
  * These routes allow admins to view and manage all platform data
- * No authentication required for demo (in production, would require admin auth middleware)
+ * All routes protected with admin authentication
  */
 
 /**
@@ -15,7 +16,7 @@ const Claim = require('../models/Claim');
  * @desc    Get all workers with their account details and stats
  * @access  Admin only
  */
-router.get('/workers', async (req, res) => {
+router.get('/workers', protectAdmin, async (req, res) => {
   try {
     const workers = await Worker.find().select('-password');
 
@@ -57,7 +58,7 @@ router.get('/workers', async (req, res) => {
  * @desc    Get all policies across the platform
  * @access  Admin only
  */
-router.get('/policies', async (req, res) => {
+router.get('/policies', protectAdmin, async (req, res) => {
   try {
     const policies = await Policy.find()
       .populate('worker', 'name phone platform')
@@ -70,29 +71,48 @@ router.get('/policies', async (req, res) => {
 
 /**
  * @route   GET /api/admin/claims
- * @desc    Get all claims across all workers
+ * @desc    Get all claims across all workers with fraud scoring details
  * @access  Admin only
  */
-router.get('/claims', async (req, res) => {
+router.get('/claims', protectAdmin, async (req, res) => {
   try {
     const claims = await Claim.find()
-      .populate('worker', 'name phone platform')
+      .populate('worker', 'name phone platform pincode city')
       .populate('policy', 'plan')
       .sort('-claimDate');
 
-    // Enrich claims with worker info in a flat structure for easy display
+    // Enrich claims with worker info and detailed fraud scoring breakdown
     const enrichedClaims = claims.map(claim => ({
       _id: claim._id,
       workerName: claim.worker?.name || 'Unknown',
       workerPhone: claim.worker?.phone,
+      workerPincode: claim.worker?.pincode,
+      workerCity: claim.worker?.city,
       triggerType: claim.triggerType,
       hoursLost: claim.hoursLost,
       payoutAmount: claim.payoutAmount,
       status: claim.status,
       fraudScore: claim.fraudScore || 0,
+      fraudPercentage: claim.autoApprovalDetails?.fraudScoring?.fraudPercentage || Math.round((claim.fraudScore || 0) * 100),
       claimDate: claim.claimDate,
       resolvedAt: claim.resolvedAt,
-      worker: claim.worker
+      worker: claim.worker,
+      plan: claim.policy?.plan,
+      // Include detailed fraud scoring breakdown for admin visibility
+      fraudScoring: claim.autoApprovalDetails?.fraudScoring || {
+        fraudScore: claim.fraudScore || 0,
+        fraudPercentage: Math.round((claim.fraudScore || 0) * 100),
+        decision: claim.status === 'Auto-Approved' ? 'AUTO_APPROVE' : 'UNDER_REVIEW',
+        breakdown: {
+          locationMismatchScore: 0,
+          platformActivityScore: 0,
+          duplicateSignalScore: 0,
+          behavioralAnomalyScore: 0
+        },
+        signals: {}
+      },
+      autoApprovalDetails: claim.autoApprovalDetails,
+      highRiskFlag: claim.autoApprovalDetails?.highRiskFlag || false
     }));
 
     res.json(enrichedClaims);
@@ -106,7 +126,7 @@ router.get('/claims', async (req, res) => {
  * @desc    Get a specific claim detail
  * @access  Admin only
  */
-router.get('/claims/:id', async (req, res) => {
+router.get('/claims/:id', protectAdmin, async (req, res) => {
   try {
     const claim = await Claim.findById(req.params.id)
       .populate('worker')
@@ -125,7 +145,7 @@ router.get('/claims/:id', async (req, res) => {
  * @desc    Approve a pending/under-review claim
  * @access  Admin only
  */
-router.put('/claims/:id/approve', async (req, res) => {
+router.put('/claims/:id/approve', protectAdmin, async (req, res) => {
   try {
     const claim = await Claim.findById(req.params.id);
     if (!claim) return res.status(404).json({ message: 'Claim not found' });
@@ -153,7 +173,7 @@ router.put('/claims/:id/approve', async (req, res) => {
  * @desc    Reject a pending/under-review claim
  * @access  Admin only
  */
-router.put('/claims/:id/reject', async (req, res) => {
+router.put('/claims/:id/reject', protectAdmin, async (req, res) => {
   try {
     const claim = await Claim.findById(req.params.id);
     if (!claim) return res.status(404).json({ message: 'Claim not found' });
@@ -174,7 +194,7 @@ router.put('/claims/:id/reject', async (req, res) => {
  * @desc    Get summarized platform statistics
  * @access  Admin only
  */
-router.get('/stats', async (req, res) => {
+router.get('/stats', protectAdmin, async (req, res) => {
   try {
     const workers = await Worker.find();
     const policies = await Policy.find();

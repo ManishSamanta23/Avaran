@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiUsers, FiTrendingUp, FiAlertTriangle, FiCheckCircle, FiClock, FiFlag } from 'react-icons/fi';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import api from '../../utils/api';
 import './AdminPages.css';
 
@@ -19,6 +20,7 @@ const StatCard = ({ icon: Icon, label, value, sub, color, trend }) => (
 );
 
 const AdminDashboard = () => {
+  const { admin } = useAdminAuth();
   const [stats, setStats] = useState({
     totalWorkers: 0,
     activePolicies: 0,
@@ -103,7 +105,7 @@ const AdminDashboard = () => {
     <AdminLayout>
       <div className="admin-page">
         <div className="admin-header-section">
-          <h1>Admin Dashboard</h1>
+          <h1>Welcome back, {admin?.name?.split(' ')[0]}</h1>
           <p>Overview of platform activity and key metrics</p>
         </div>
 

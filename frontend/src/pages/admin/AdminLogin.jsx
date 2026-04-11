@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiMail, FiLock } from 'react-icons/fi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -9,56 +9,27 @@ import '../AuthPages.css';
 const AdminLogin = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
-  const { login } = useAdminAuth();
+  const { login, logout } = useAdminAuth();
   const navigate = useNavigate();
 
-  // Hardcoded admin credentials
-  const ADMIN_EMAIL = 'admin@avaran.in';
-  const ADMIN_PASSWORD = 'admin123';
+  // Clear any existing admin session on mount
+  useEffect(() => {
+    logout();
+    localStorage.removeItem('avaran_admin_token');
+  }, [logout]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Simulate a small delay for UX
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Check demo credentials
-      if (form.email === ADMIN_EMAIL && form.password === ADMIN_PASSWORD) {
-        const adminData = {
-          name: 'Admin',
-          email: ADMIN_EMAIL,
-          role: 'admin',
-          token: 'admin-token'
-        };
-        login(adminData);
-        toast.success('Welcome to Admin Dashboard!');
-        navigate('/admin/dashboard');
-        return;
-      }
-
-      // Check registered admin accounts
-      const registeredAdmins = JSON.parse(localStorage.getItem('avaran_registered_admins') || '[]');
-      const adminAccount = registeredAdmins.find(
-        a => a.email === form.email && a.password === form.password
-      );
-
-      if (adminAccount) {
-        const adminData = {
-          name: adminAccount.name,
-          email: adminAccount.email,
-          role: 'admin',
-          token: 'admin-token-' + Date.now()
-        };
-        login(adminData);
-        toast.success(`Welcome, ${adminAccount.name}!`);
-        navigate('/admin/dashboard');
-      } else {
-        toast.error('Invalid email or password');
-      }
+      await login(form.email, form.password);
+      toast.success('Welcome to Admin Dashboard!');
+      navigate('/admin/dashboard');
     } catch (err) {
-      toast.error('Login failed');
+      const errorMessage = err.response?.data?.message || 'Login failed';
+      toast.error(errorMessage);
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }

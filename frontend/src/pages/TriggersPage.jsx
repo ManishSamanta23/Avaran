@@ -293,7 +293,7 @@ const TriggersPage = () => {
           {[
             { step: '01', label: 'API Detects Threshold', desc: 'Weather/AQI/News APIs checked every 15 min' },
             { step: '02', label: 'Zone Match', desc: "Worker's pincode matched to affected area" },
-            { step: '03', label: 'Fraud Score Computed', desc: 'ML model validates claim authenticity (< 0.3 = auto-approve)' },
+            { step: '03', label: 'Fraud Score Computed', desc: 'Automated system validates claim authenticity (< 0.3 = auto-approve)' },
             { step: '04', label: 'Payout Calculated', desc: 'Hours lost × daily earnings × plan ratio' },
             { step: '05', label: 'UPI Transfer', desc: 'Money sent to registered UPI within 2 hours' },
           ].map((s, i) => (

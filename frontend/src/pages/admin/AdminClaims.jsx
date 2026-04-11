@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiChevronDown } from 'react-icons/fi';
 import AdminLayout from '../../components/admin/AdminLayout';
 import api from '../../utils/api';
 import './AdminPages.css';
@@ -11,6 +11,7 @@ const AdminClaims = () => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
+  const [expandedRow, setExpandedRow] = useState(null);
 
   const statuses = ['ALL', 'AUTO-APPROVED', 'UNDER REVIEW', 'APPROVED', 'REJECTED'];
 
@@ -123,7 +124,7 @@ const AdminClaims = () => {
       <div className="admin-page">
         <div className="admin-header-section">
           <h1>Claims Management</h1>
-          <p>Review and manage all worker claims</p>
+          <p>Review and manage all worker claims with detailed fraud analysis</p>
         </div>
 
         {/* Status Filter Tabs */}
@@ -167,6 +168,7 @@ const AdminClaims = () => {
           <table className="admin-table">
             <thead>
               <tr>
+                <th></th>
                 <th>Worker</th>
                 <th>Trigger Type</th>
                 <th>Date</th>
@@ -180,57 +182,146 @@ const AdminClaims = () => {
             <tbody>
               {filteredClaims.length > 0 ? (
                 filteredClaims.map(claim => (
-                  <tr key={claim._id}>
-                    <td className="worker-name">{claim.workerName || 'N/A'}</td>
-                    <td>{claim.triggerType}</td>
-                    <td>{formatDate(claim.claimDate)}</td>
-                    <td>{claim.hoursLost}h</td>
-                    <td>{formatCurrency(claim.payoutAmount)}</td>
-                    <td>
-                      <span className="status-badge" style={{ background: `${statusColor(claim.status)}18`, color: statusColor(claim.status) }}>
-                        {claim.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="fraud-score-bar">
-                        <div
-                          className="fraud-fill"
+                  <React.Fragment key={claim._id}>
+                    <tr>
+                      <td style={{ width: '40px', textAlign: 'center' }}>
+                        <button
+                          onClick={() => setExpandedRow(expandedRow === claim._id ? null : claim._id)}
                           style={{
-                            width: `${Math.min(claim.fraudScore * 100, 100)}%`,
-                            background: getFraudBarColor(claim.fraudScore)
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--text-muted)',
+                            display: 'flex',
+                            alignItems: 'center'
                           }}
-                        />
-                        <span className="fraud-text">{Math.round(claim.fraudScore * 100)}%</span>
-                      </div>
-                    </td>
-                    <td>
-                      {claim.status === 'Under Review' && (
-                        <div className="btn-group">
-                          <button
-                            className="btn-small btn-approve"
-                            onClick={() => handleApproveClaim(claim._id)}
-                            disabled={actionLoading === claim._id}
-                          >
-                            {actionLoading === claim._id ? '...' : '✓ Approve'}
-                          </button>
-                          <button
-                            className="btn-small btn-reject"
-                            onClick={() => handleRejectClaim(claim._id)}
-                            disabled={actionLoading === claim._id}
-                          >
-                            {actionLoading === claim._id ? '...' : '✗ Reject'}
-                          </button>
+                          title="View fraud score details"
+                        >
+                          <FiChevronDown 
+                            size={18} 
+                            style={{ 
+                              transform: expandedRow === claim._id ? 'rotate(180deg)' : 'rotate(0deg)',
+                              transition: 'transform 0.2s'
+                            }} 
+                          />
+                        </button>
+                      </td>
+                      <td className="worker-name">
+                        <div>{claim.workerName || 'N/A'}</div>
+                        <small style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{claim.workerCity}</small>
+                      </td>
+                      <td>{claim.triggerType}</td>
+                      <td>{formatDate(claim.claimDate)}</td>
+                      <td>{claim.hoursLost}h</td>
+                      <td>{formatCurrency(claim.payoutAmount)}</td>
+                      <td>
+                        <span className="status-badge" style={{ background: `${statusColor(claim.status)}18`, color: statusColor(claim.status) }}>
+                          {claim.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="fraud-score-bar">
+                          <div
+                            className="fraud-fill"
+                            style={{
+                              width: `${Math.min(claim.fraudPercentage || 0, 100)}%`,
+                              background: getFraudBarColor(claim.fraudScore)
+                            }}
+                          />
+                          <span className="fraud-text">{claim.fraudPercentage || 0}%</span>
                         </div>
-                      )}
-                      {claim.status !== 'Under Review' && (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>—</span>
-                      )}
-                    </td>
-                  </tr>
+                      </td>
+                      <td>
+                        {claim.status === 'Under Review' && (
+                          <div className="btn-group">
+                            <button
+                              className="btn-small btn-approve"
+                              onClick={() => handleApproveClaim(claim._id)}
+                              disabled={actionLoading === claim._id}
+                            >
+                              {actionLoading === claim._id ? '...' : '✓ Approve'}
+                            </button>
+                            <button
+                              className="btn-small btn-reject"
+                              onClick={() => handleRejectClaim(claim._id)}
+                              disabled={actionLoading === claim._id}
+                            >
+                              {actionLoading === claim._id ? '...' : '✗ Reject'}
+                            </button>
+                          </div>
+                        )}
+                        {claim.status !== 'Under Review' && (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                    {expandedRow === claim._id && claim.fraudScoring && (
+                      <tr style={{ background: 'rgba(255, 107, 53, 0.05)' }}>
+                        <td colSpan="9" style={{ padding: '16px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                            <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                              <small style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Decision</small>
+                              <div style={{ marginTop: '4px', fontSize: '14px', fontWeight: '500' }}>
+                                {claim.fraudScoring.decision === 'AUTO_APPROVE' && '✓ Auto-Approve'}
+                                {claim.fraudScoring.decision === 'UNDER_REVIEW' && '⚠ Under Review'}
+                                {claim.fraudScoring.decision === 'HOLD_MANUAL_REVIEW' && '🚩 Manual Review'}
+                              </div>
+                            </div>
+                            
+                            <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                              <small style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Overall Score</small>
+                              <div style={{ marginTop: '4px', fontSize: '18px', fontWeight: '600', color: getFraudBarColor(claim.fraudScore) }}>
+                                {claim.fraudScoring.fraudPercentage}%
+                              </div>
+                            </div>
+
+                            <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                              <small style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Risk Assessment</small>
+                              <div style={{ marginTop: '4px', fontSize: '13px' }}>
+                                {claim.highRiskFlag && <div>🚩 High Risk Flag</div>}
+                                {claim.fraudScoring.decisionReason}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Detailed Score Breakdown */}
+                          <div style={{ marginTop: '12px', background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                            <small style={{ color: 'var(--text-muted)', fontWeight: '600', display: 'block', marginBottom: '8px' }}>Score Breakdown (Weighted Components)</small>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                              <div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Location Mismatch (35%)</div>
+                                <div style={{ fontSize: '16px', fontWeight: '600', color: '#FF6B35' }}>
+                                  {(claim.fraudScoring.breakdown?.locationMismatchScore * 100).toFixed(0)}%
+                                </div>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Platform Activity (30%)</div>
+                                <div style={{ fontSize: '16px', fontWeight: '600', color: '#FFD166' }}>
+                                  {(claim.fraudScoring.breakdown?.platformActivityScore * 100).toFixed(0)}%
+                                </div>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Duplicate Signals (20%)</div>
+                                <div style={{ fontSize: '16px', fontWeight: '600', color: '#FF6B35' }}>
+                                  {(claim.fraudScoring.breakdown?.duplicateSignalScore * 100).toFixed(0)}%
+                                </div>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Behavioral Anomaly (15%)</div>
+                                <div style={{ fontSize: '16px', fontWeight: '600', color: '#FFD166' }}>
+                                  {(claim.fraudScoring.breakdown?.behavioralAnomalyScore * 100).toFixed(0)}%
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>
                     No claims found
                   </td>
                 </tr>

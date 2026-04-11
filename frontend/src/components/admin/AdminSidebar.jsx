@@ -7,7 +7,7 @@ import './AdminSidebar.css';
 
 const AdminSidebar = () => {
   const location = useLocation();
-  const { logout } = useAdminAuth();
+  const { logout, admin } = useAdminAuth();
 
   const links = [
     { path: '/admin/dashboard', label: 'Overview', icon: FiHome },

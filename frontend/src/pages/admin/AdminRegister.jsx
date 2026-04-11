@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiMail, FiLock, FiUser, FiKey } from 'react-icons/fi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import toast from 'react-hot-toast';
 import ShieldIcon from '../../components/ShieldIcon';
 import '../AuthPages.css';
@@ -14,9 +15,14 @@ const AdminRegister = () => {
     secretKey: ''
   });
   const [loading, setLoading] = useState(false);
+  const { register, logout } = useAdminAuth();
   const navigate = useNavigate();
 
-  const ADMIN_SECRET_KEY = 'AVARAN@ADMIN2026';
+  // Clear any existing admin session on mount
+  useEffect(() => {
+    logout();
+    localStorage.removeItem('avaran_admin_token');
+  }, [logout]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,8 +30,8 @@ const AdminRegister = () => {
 
     try {
       // Validate secret key
-      if (form.secretKey !== ADMIN_SECRET_KEY) {
-        toast.error('Invalid admin secret key');
+      if (!form.secretKey) {
+        toast.error('Admin secret key is required');
         setLoading(false);
         return;
       }
@@ -44,32 +50,13 @@ const AdminRegister = () => {
         return;
       }
 
-      // Simulate registration delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Store registered admin account in localStorage
-      const registeredAdmins = JSON.parse(localStorage.getItem('avaran_registered_admins') || '[]');
-      
-      // Check if email already exists
-      if (registeredAdmins.find(a => a.email === form.email)) {
-        toast.error('Email already registered');
-        setLoading(false);
-        return;
-      }
-
-      // Add new admin account
-      registeredAdmins.push({
-        name: form.name,
-        email: form.email,
-        password: form.password
-      });
-
-      localStorage.setItem('avaran_registered_admins', JSON.stringify(registeredAdmins));
-
+      await register(form.name, form.email, form.password, form.confirmPassword, form.secretKey);
       toast.success('Admin account created successfully!');
-      navigate('/admin/login');
+      navigate('/admin/dashboard');
     } catch (err) {
-      toast.error('Registration failed');
+      const errorMessage = err.response?.data?.message || 'Registration failed';
+      toast.error(errorMessage);
+      console.error('Registration error:', err);
     } finally {
       setLoading(false);
     }
@@ -151,8 +138,11 @@ const AdminRegister = () => {
           </button>
         </form>
 
-        <p className="auth-switch">
-          Already have an admin account? <Link to="/admin/login">Login</Link>
+        <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: 'var(--text-muted)' }}>
+          Already have an account?{' '}
+          <Link to="/admin/login" style={{ color: 'var(--orange)', textDecoration: 'none', fontWeight: '600' }}>
+            Login here
+          </Link>
         </p>
       </div>
     </div>

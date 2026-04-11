@@ -26,7 +26,7 @@ const LandingPage = () => {
   const steps = [
     { num: '01', title: 'Sign Up in 60s', desc: 'Phone number + Zepto/Blinkit ID. No paperwork.' },
     { num: '02', title: 'Pick Weekly Plan', desc: 'Starting at ₹29/week. Cancel anytime.' },
-    { num: '03', title: 'AI Monitors 24/7', desc: 'Weather, AQI, curfews tracked in real-time.' },
+    { num: '03', title: 'Real-time monitoring 24/7', desc: 'Weather, AQI, curfews tracked in real-time.' },
     { num: '04', title: 'Instant UPI Payout', desc: 'Disruption detected → money in your account in 2 hrs.' },
   ];
 
@@ -42,7 +42,7 @@ const LandingPage = () => {
             <span className="highlight">protected.</span>
           </h1>
           <p className="hero-subtitle fade-up">
-            India's first AI-powered parametric insurance for Zepto & Blinkit delivery partners.
+            India's first smart automated parametric insurance for Zepto & Blinkit delivery partners.
             Floods, AQI alerts, curfews — when disruptions stop your work, we pay automatically.
           </p>
           <div className="hero-actions fade-up">

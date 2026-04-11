@@ -26,6 +26,29 @@ const claimSchema = new mongoose.Schema({
   },
   fraudScore: { type: Number, default: 0 },
   /**
+   * Detailed fraud scoring breakdown:
+   * Stores individual component scores, decision rationale, and fraud risk signals
+   * for transparency and auditing purposes.
+   */
+  fraudScoringDetails: {
+    fraudScore: { type: Number, default: 0 },
+    fraudPercentage: { type: Number, default: 0 },
+    decision: { 
+      type: String, 
+      enum: ['AUTO_APPROVE', 'UNDER_REVIEW', 'HOLD_MANUAL_REVIEW'],
+      default: 'UNDER_REVIEW'
+    },
+    decisionReason: { type: String },
+    breakdown: {
+      locationMismatchScore: { type: Number, default: 0 },
+      platformActivityScore: { type: Number, default: 0 },
+      duplicateSignalScore: { type: Number, default: 0 },
+      behavioralAnomalyScore: { type: Number, default: 0 }
+    },
+    signals: { type: mongoose.Schema.Types.Mixed },
+    calculatedAt: { type: Date }
+  },
+  /**
    * Automated Approval Handshake:
    * Stores granular verification data from the parametric engine.
    * Tracks whether claimed environmental disruption matched actual 

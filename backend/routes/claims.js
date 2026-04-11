@@ -5,6 +5,7 @@ const Policy = require('../models/Policy');
 const { protect } = require('../middleware/auth');
 const { z } = require('zod');
 const { validateClaimAgainstRealData } = require('../utils/autoApprovalEngine');
+const { calculateFraudScore } = require('../utils/fraudScoringEngine');
 
 /**
  * Validation schema for claim submission.
@@ -15,7 +16,8 @@ const claimSchema = z.object({
   triggerValue: z.any().optional(),
   hoursLost: z.coerce.number().positive('Hours lost must be greater than 0').max(24, 'Hours lost cannot exceed 24'),
   latitude: z.coerce.number().optional(),
-  longitude: z.coerce.number().optional()
+  longitude: z.coerce.number().optional(),
+  claimPincode: z.string().optional()
 });
 
 /**
@@ -28,22 +30,12 @@ const calculatePayout = (hoursLost, avgDailyHours, avgDailyEarnings, plan) => {
   return Math.round((hoursLost / avgDailyHours) * avgDailyEarnings * ratio);
 };
 
-/**
- * Baseline Fraud Assessment:
- * Assigns a risk score to flag anomalous claim behaviors (e.g., extreme hours lost).
- */
-const getFraudScore = (worker, triggerType, hoursLost) => {
-  let score = 0;
-  if (hoursLost > 12) score += 0.4;
-  if (hoursLost > 8) score += 0.2;
-  return Math.min(score, 1.0);
-};
-
 const AUTO_APPROVABLE_TRIGGERS = ['Heavy Rainfall', 'Flash Flood', 'Extreme Heat', 'Cyclone', 'Air Pollution'];
 
 /**
  * @route   POST /api/claims
- * @desc    Submits a claim and triggers the automated parametric validation pipeline.
+ * @desc    Submits a claim and triggers the automated parametric validation pipeline
+ *          with comprehensive weighted fraud scoring.
  * @access  Private
  */
 router.post('/', protect, async (req, res) => {
@@ -51,7 +43,7 @@ router.post('/', protect, async (req, res) => {
     const parsed = claimSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: parsed.error.issues[0].message });
     
-    const { triggerType, triggerValue, hoursLost, latitude, longitude } = parsed.data;
+    const { triggerType, triggerValue, hoursLost, latitude, longitude, claimPincode } = parsed.data;
     
     const policy = await Policy.findOne({ worker: req.worker._id, status: 'Active' });
     if (!policy) return res.status(400).json({ message: 'No active policy found for this worker' });
@@ -65,21 +57,37 @@ router.post('/', protect, async (req, res) => {
       policy.maxWeeklyPayout
     );
 
-    const fraudScore = getFraudScore(req.worker, triggerType, hoursLost);
+    // Create temporary claim object for fraud scoring
+    const tempClaim = {
+      claimDate: new Date(),
+      triggerType,
+      hoursLost
+    };
+
+    // Calculate comprehensive fraud score
+    const fraudScoring = await calculateFraudScore(req.worker, tempClaim, claimPincode);
 
     let status = 'Under Review';
     let autoApprovalDetails = null;
     let transactionId = null;
 
     /**
-     * Automated Verification Handshake:
-     * Cross-references claimed disruption with external atmospheric monitoring if 
-     * geolocation is provided and fraud risk is low.
+     * Decision Logic based on fraud score:
+     * - fraudScore < 0.20 → AUTO-APPROVE
+     * - fraudScore 0.20 to 0.50 → UNDER REVIEW
+     * - fraudScore > 0.50 → HOLD for manual review, flag as HIGH RISK
      */
-    if (latitude && longitude && AUTO_APPROVABLE_TRIGGERS.includes(triggerType) && fraudScore < 0.2) {
+    
+    if (fraudScoring.decision === 'AUTO_APPROVE' && 
+        latitude && longitude && 
+        AUTO_APPROVABLE_TRIGGERS.includes(triggerType)) {
+      // Attempt environmental API verification for low-fraud claims
       try {
         const validationResult = await validateClaimAgainstRealData(triggerType, latitude, longitude);
-        autoApprovalDetails = validationResult;
+        autoApprovalDetails = {
+          ...validationResult,
+          fraudScoring: fraudScoring
+        };
 
         if (validationResult.success && validationResult.auto_approved) {
           status = 'Auto-Approved';
@@ -93,29 +101,38 @@ router.post('/', protect, async (req, res) => {
         autoApprovalDetails = {
           success: false,
           error: validationError.message,
-          decision_reason: 'Automated validation failed. Routed to manual review.'
+          decision_reason: 'Automated validation failed. Routed to manual review.',
+          fraudScoring: fraudScoring
         };
       }
+    } else if (fraudScoring.decision === 'HOLD_MANUAL_REVIEW') {
+      // High fraud risk - flag for manual review
+      status = 'Under Review';
+      autoApprovalDetails = {
+        success: false,
+        error: 'High Fraud Risk Detected',
+        decision_reason: fraudScoring.decisionReason,
+        fraudScoring: fraudScoring,
+        flaggedForManualReview: true,
+        highRiskFlag: true
+      };
     } else {
-      // Logic for fallback to manual review status
+      // Moderate risk or missing data - route to manual review
+      status = 'Under Review';
+      autoApprovalDetails = {
+        success: false,
+        error: 'Manual Review Required',
+        decision_reason: fraudScoring.decisionReason,
+        fraudScoring: fraudScoring
+      };
+
+      // Add additional context for why manual review is needed
       if (!latitude || !longitude) {
-        autoApprovalDetails = {
-          success: false,
-          error: 'Geolocation Missing',
-          decision_reason: 'Precise coordinates required for real-time verification'
-        };
+        autoApprovalDetails.error = 'Geolocation Missing';
+        autoApprovalDetails.decision_reason = 'Precise coordinates required for real-time verification';
       } else if (!AUTO_APPROVABLE_TRIGGERS.includes(triggerType)) {
-        autoApprovalDetails = {
-          success: false,
-          error: 'Manual Verification Required',
-          decision_reason: `Event type requires human verification of external records`
-        };
-      } else if (fraudScore >= 0.2) {
-        autoApprovalDetails = {
-          success: false,
-          error: 'Fraud Risk Flag',
-          decision_reason: `Internal risk score (${fraudScore.toFixed(2)}) exceeds automation threshold`
-        };
+        autoApprovalDetails.error = 'Manual Verification Required';
+        autoApprovalDetails.decision_reason = `Event type requires human verification of external records`;
       }
     }
 
@@ -126,7 +143,16 @@ router.post('/', protect, async (req, res) => {
       triggerValue, 
       hoursLost,
       payoutAmount,
-      fraudScore,
+      fraudScore: fraudScoring.fraudScore,
+      fraudScoringDetails: {
+        fraudScore: fraudScoring.fraudScore,
+        fraudPercentage: fraudScoring.fraudPercentage,
+        decision: fraudScoring.decision,
+        decisionReason: fraudScoring.decisionReason,
+        breakdown: fraudScoring.breakdown,
+        signals: fraudScoring.signals,
+        calculatedAt: new Date()
+      },
       status,
       payoutTransactionId: transactionId,
       isAutoClaim: status === 'Auto-Approved',
@@ -141,7 +167,8 @@ router.post('/', protect, async (req, res) => {
     res.status(201).json({
       message: `Claim processed successfully: ${status}`,
       claim: claim,
-      autoApprovalDetails: autoApprovalDetails
+      autoApprovalDetails: autoApprovalDetails,
+      fraudScoring: fraudScoring
     });
 
   } catch (err) {

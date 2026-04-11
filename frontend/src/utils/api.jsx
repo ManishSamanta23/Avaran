@@ -8,6 +8,14 @@ import axios from 'axios';
 const api = axios.create({ baseURL: '/api' });
 
 api.interceptors.request.use((config) => {
+  // Check for admin token first
+  const adminToken = localStorage.getItem('avaran_admin_token');
+  if (adminToken) {
+    config.headers.Authorization = `Bearer ${adminToken}`;
+    return config;
+  }
+
+  // Fall back to worker token
   const stored = localStorage.getItem('avaran_worker');
   if (stored) {
     const { token } = JSON.parse(stored);
