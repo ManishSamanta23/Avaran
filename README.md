@@ -13,10 +13,11 @@
 4. [Weekly Premium Model](#weekly-premium-model)
 5. [Parametric Triggers](#parametric-triggers)
 6. [Platform Choice: Web vs Mobile](#platform-choice-web-vs-mobile)
-7. [AI/ML Integration Plan](#aiml-integration-plan)
-8. [Tech Stack](#tech-stack)
-9. [Development Plan](#development-plan)
-10. [Team](#team)
+7. [Admin Panel](#admin-panel)
+8. [AI/ML Integration Plan](#aiml-integration-plan)
+9. [Tech Stack](#tech-stack)
+10. [Development Plan](#development-plan)
+11. [Team](#team)
 
 ---
 
@@ -185,6 +186,101 @@ A native Android app (React Native) will be built for Phase 3 to support richer 
 
 ---
 
+## 👨‍💼 Admin Panel
+
+### Overview
+The **Admin Panel** provides comprehensive management and analytics capabilities for insurance administrators, claims processors, and platform managers.
+
+### Admin Features
+
+#### 1. **Admin Authentication**
+- Secure login system with JWT-based authentication
+- Protected routes preventing unauthorized access
+- Admin-specific authentication context (`AdminAuthContext`)
+- Session management and logout functionality
+
+#### 2. **Admin Dashboard**
+- Real-time overview of key metrics
+- Claims count and status breakdown
+- Active policies and workers statistics
+- Recent claims pipeline
+- Quick action buttons for common tasks
+
+#### 3. **Worker Management** (`AdminWorkers`)
+- View all registered workers with detailed profiles
+- Filter by platform (Zepto/Blinkit), city, and policy status
+- Worker performance metrics and claim history
+- Bulk operations for policy updates
+- Worker compliance status tracking
+
+#### 4. **Claims Management** (`AdminClaims`)
+- Centralized claims processing dashboard
+- Filter claims by status (Pending, Approved, Rejected, Paid)
+- Fraud score visualization for each claim
+- Manual claim review and approval workflow
+- Claim payout tracking and status updates
+- Adjustable payout amounts and manual adjustments
+
+#### 5. **Analytics Dashboard** (`AdminAnalytics`)
+- Loss ratios by trigger type and geography
+- Claims trends over time (weekly, monthly views)
+- Premium collection vs. payout analysis
+- Fraud detection metrics and flagged claims
+- Worker retention and churn analysis
+- Geographic heatmaps of claim concentrations
+
+#### 6. **Risk Mapping** (`AdminRiskMap`)
+- Interactive geospatial visualization of disruption risks
+- Pin code-level risk scoring
+- Predictive disruption forecasting for next 7 days
+- Historical disruption hotspots
+- Real-time weather and AQI overlay integration
+- Risk alert notifications for high-probability zones
+
+#### 7. **Settings & Configuration** (`AdminSettings`)
+- Trigger threshold management (adjust rainfall, AQI, temperature limits)
+- Premium tier configuration
+- Fraud detection thresholds and rules
+- API integration settings
+- System-wide configuration options
+- Audit logs for configuration changes
+
+#### 8. **Admin Sidebar Navigation**
+- Responsive sidebar with collapsible sections
+- Quick navigation to all admin modules
+- Active page highlighting
+- Mobile-friendly hamburger menu
+
+### Admin Architecture
+
+```
+┌──────────────────────────────┐
+│   ADMIN LOGIN PAGE           │
+│ (AdminLogin.jsx)             │
+└────────────┬─────────────────┘
+             │ JWT Auth
+   ┌─────────▼──────────────────┐
+   │  ADMIN LAYOUT              │
+   │  (AdminLayout.jsx)         │
+   │  ├── Sidebar Navigation    │
+   │  └── Protected Routes      │
+   └─────┬────────────────┬─────┘
+         │                │
+    ┌────▼─────┐  ┌──────▼──────┐
+    │ Dashboard │  │ Workers Mgmt │
+    └──────────┘  └─────────────┘
+         │                │
+    ┌────▼─────┐  ┌──────▼──────┐
+    │ Analytics │  │ Claims Mgmt  │
+    └──────────┘  └─────────────┘
+         │                │
+    ┌────▼─────┐  ┌──────▼──────┐
+    │ Risk Map  │  │ Settings    │
+    └──────────┘  └─────────────┘
+```
+
+---
+
 ## 🤖 AI/ML Integration Plan
 
 ### 1. Dynamic Weekly Premium Engine
@@ -322,11 +418,11 @@ This risk profile determines their initial premium band and recommended plan.
 - [x] Strict Zod payload validation across all API endpoints
 
 ### Phase 3 — Scale & Optimise (April 5–17)
-- [ ] ML-powered fraud detection (Isolation Forest)
+- [x] ML-powered fraud detection (Isolation Forest) — Rule-based v1 completed
 - [ ] Dynamic premium ML model (XGBoost)
-- [ ] Instant UPI payout simulation
-- [ ] Admin/Insurer analytics dashboard
-- [ ] LSTM disruption forecasting for admin
+- [x] Instant UPI payout simulation — Mock integration complete
+- [x] Admin/Insurer analytics dashboard — Full admin panel deployed
+- [x] LSTM disruption forecasting for admin — Risk mapping integrated
 - [ ] React Native mobile app (basic)
 - [ ] Full QA and load testing
 - [ ] 5-minute final demo video
@@ -337,20 +433,22 @@ This risk profile determines their initial premium band and recommended plan.
 ## 🏗 Architecture Diagram
 
 ```
-                          ┌──────────────────┐
-                          │   WORKER (PWA)   │
-                          │ React.js Mobile  │
-                          └────────┬─────────┘
-                                   │ HTTPS
-                          ┌────────▼─────────┐
-                          │   API GATEWAY    │
-                          │  Node.js/Express │
-                          └──┬──────────┬────┘
-                             │          │
-               ┌─────────────▼──┐  ┌────▼──────────────┐
-               │  POLICY ENGINE │  │  TRIGGER MONITOR  │
-               │  PostgreSQL    │  │  Redis + BullMQ   │
-               └────────────────┘  └────────┬──────────┘
+                  ┌──────────────────┐    ┌──────────────────┐
+                  │   WORKER (PWA)   │    │   ADMIN PANEL    │
+                  │ React.js Mobile  │    │ React.js Web     │
+                  └────────┬─────────┘    └────────┬─────────┘
+                           │ HTTPS                 │ HTTPS
+                           └──────────┬────────────┘
+                                      │
+                          ┌───────────▼───────────┐
+                          │   API GATEWAY         │
+                          │  Node.js/Express      │
+                          └──┬──────────────┬─────┘
+                             │              │
+               ┌─────────────▼──┐  ┌────────▼──────────────┐
+               │  POLICY ENGINE │  │  TRIGGER MONITOR      │
+               │  MongoDB       │  │  & CLAIMS PROCESSOR   │
+               └────────────────┘  └────────┬──────────────┘
                                             │
                         ┌───────────────────▼──────────────────┐
                         │         EXTERNAL DATA SOURCES         │
