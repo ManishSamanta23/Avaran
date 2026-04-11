@@ -386,7 +386,7 @@ This risk profile determines their initial premium band and recommended plan.
 |------|------|
 | [Arnab Dey] | Full Stack Developer |
 | [Premal Bhagat] | AI/ML Engineer |
-| [Manish Samanta] | UI/UX + Frontend + Backend |
+| [Manish Samanta] | UI/UX + Full Stack Developer |
 ---
 
 ## ⚠️ Coverage Exclusions (As per hackathon constraints)
