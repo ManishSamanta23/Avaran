@@ -3,6 +3,14 @@
 > **Guidewire DEVTrails 2026 | University Hackathon**
 > Protecting the livelihoods of Zepto & Blinkit delivery partners from uncontrollable external disruptions.
 
+<p align="center">
+  <a href="https://avaran-seven.vercel.app/"><img src="https://img.shields.io/badge/%E2%96%B2-Live%20Demo-black?style=for-the-badge" alt="Live Demo"></a>
+  <img src="https://img.shields.io/badge/Frontend-React%2018-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="Frontend React 18">
+  <img src="https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Backend Node.js + Express">
+  <img src="https://img.shields.io/badge/Database-MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="Database MongoDB">
+  <img src="https://img.shields.io/badge/Deployment-Vercel-111827?style=for-the-badge" alt="Deployment Vercel">
+</p>
+
 ---
 
 ## 📌 Table of Contents
