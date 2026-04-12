@@ -1,4 +1,4 @@
-# 🛒 Avaran — AI-Powered Parametric Income Insurance for India's Q-Commerce Workers
+# 🛒 Avaran — Smart Automated Parametric Income Insurance for India's Q-Commerce Workers
 
 > **Guidewire DEVTrails 2026 | University Hackathon**
 > Protecting the livelihoods of Zepto & Blinkit delivery partners from uncontrollable external disruptions.
@@ -14,7 +14,7 @@
 5. [Parametric Triggers](#parametric-triggers)
 6. [Platform Choice: Web vs Mobile](#platform-choice-web-vs-mobile)
 7. [Admin Panel](#admin-panel)
-8. [AI/ML Integration Plan](#aiml-integration-plan)
+8. [Fraud Detection System](#-fraud-detection-system)
 9. [Tech Stack](#tech-stack)
 10. [Development Plan](#development-plan)
 11. [Team](#team)
@@ -82,17 +82,17 @@ External disruptions — **heavy rain, flash floods, extreme heat, AQI spikes, l
 │  [1] ONBOARDING          [2] RISK PROFILING    [3] POLICY         │
 │  ─────────────           ──────────────────    ──────────         │
 │  • Phone number          • Zone-based risk      • Shield Advisor  │
-│  • Aadhaar-lite KYC        scoring (AI model)     (AI Recs)       │
+│  • Aadhaar-lite KYC        scoring              • Recommendations │
 │  • Platform ID           • Historical earnings  • Premium calc    │
 │    (Zepto/Blinkit)         analysis             • Savings Tracker │
 │  • GPS home zone         • Disruption frequency • UPI mandate     │
-│    selection               in user's area                         │
+│    selection               in user's area       │
 │                                                                   │
 │  [4] LIVE MONITORING     [5] AUTO CLAIM         [6] PAYOUT        │
 │  ───────────────────     ─────────────          ───────           │
-│  • Weather APIs          • Proactive Suggest    • UPI Direct      │
+│  • Weather APIs          • Automated Suggest    • UPI Direct      │
 │  • AQI APIs              • Visual Pipeline      • SMS notify      │
-│  • Traffic/Zone APIs     • Fraud check runs     • Dashboard       │
+│  • Traffic/Zone APIs     • Fraud validation     • Dashboard       │
 │  • Platform status       • Worker notified                        │
 │                                                                   │
 │  [7] ANALYTICS DASHBOARD                                          │
@@ -194,17 +194,20 @@ The **Admin Panel** provides comprehensive management and analytics capabilities
 ### Admin Features
 
 #### 1. **Admin Authentication**
-- Secure login system with JWT-based authentication
-- Protected routes preventing unauthorized access
+- Secure login system with JWT-based authentication (24-hour token expiration)
+- Protected routes with `protectAdmin` middleware
 - Admin-specific authentication context (`AdminAuthContext`)
-- Session management and logout functionality
+- MongoDB-backed user storage with bcrypt password hashing
+- Secret key validation for admin registration (environment-based: `ADMIN_SECRET_KEY`)
+- Session management with automatic logout on auth pages to prevent unauthorized access
 
 #### 2. **Admin Dashboard**
-- Real-time overview of key metrics
-- Claims count and status breakdown
+- Real-time overview of key metrics with personalized welcome message
+- Claims count and status breakdown by week
 - Active policies and workers statistics
-- Recent claims pipeline
-- Quick action buttons for common tasks
+- Fraud flagged claims tracking
+- Recent claims pipeline with fraud scoring details
+- Payout analysis for this week
 
 #### 3. **Worker Management** (`AdminWorkers`)
 - View all registered workers with detailed profiles
@@ -216,10 +219,14 @@ The **Admin Panel** provides comprehensive management and analytics capabilities
 #### 4. **Claims Management** (`AdminClaims`)
 - Centralized claims processing dashboard
 - Filter claims by status (Pending, Approved, Rejected, Paid)
-- Fraud score visualization for each claim
+- Weighted fraud score visualization with 4-component breakdown:
+  - Location mismatch analysis (35% weight)
+  - Platform activity patterns (30% weight)
+  - Duplicate claim signals (20% weight)
+  - Behavioral anomalies (15% weight)
+- Color-coded fraud indicators (green < 0.2, yellow 0.2-0.5, red > 0.5)
 - Manual claim review and approval workflow
 - Claim payout tracking and status updates
-- Adjustable payout amounts and manual adjustments
 
 #### 5. **Analytics Dashboard** (`AdminAnalytics`)
 - Loss ratios by trigger type and geography
@@ -254,64 +261,45 @@ The **Admin Panel** provides comprehensive management and analytics capabilities
 ### Admin Architecture
 
 ```
-┌──────────────────────────────┐
-│   ADMIN LOGIN PAGE           │
-│ (AdminLogin.jsx)             │
-└────────────┬─────────────────┘
-             │ JWT Auth
-   ┌─────────▼──────────────────┐
-   │  ADMIN LAYOUT              │
-   │  (AdminLayout.jsx)         │
-   │  ├── Sidebar Navigation    │
-   │  └── Protected Routes      │
-   └─────┬────────────────┬─────┘
-         │                │
-    ┌────▼─────┐  ┌──────▼──────┐
-    │ Dashboard │  │ Workers Mgmt │
-    └──────────┘  └─────────────┘
-         │                │
-    ┌────▼─────┐  ┌──────▼──────┐
-    │ Analytics │  │ Claims Mgmt  │
-    └──────────┘  └─────────────┘
-         │                │
-    ┌────▼─────┐  ┌──────▼──────┐
-    │ Risk Map  │  │ Settings    │
-    └──────────┘  └─────────────┘
+                    MongoDB (Admin Collection)
+                              │
+    ┌────────────────────────┴────────────────────────┐
+    │                                                  │
+┌───▼──────────────────┐              ┌───────────────▼─────┐
+│  ADMIN AUTH ROUTES   │              │ ADMIN DATA ROUTES   │
+│  (/api/admin/auth)   │              │ (/api/admin/*)      │
+├──────────────────────┤              ├─────────────────────┤
+│ • Login              │              │ • Workers (read)    │
+│ • Register (secret)  │              │ • Claims (fraud)    │
+│ • Verify Token       │              │ • Policies (read)   │
+│ • Logout             │              │ • Analytics (data)  │
+└───┬──────────────────┘              └─────────────────────┘
+    │ JWT Token                       with protectAdmin
+    │ (24-hr expiry)                  middleware
+    │
+┌───▼──────────────────────────────────────────────┐
+│   ADMIN LAYOUT                                    │
+│   ├── Sidebar (with logout button)                │
+│   └── Protected Routes (AdminProtectedRoute.jsx)  │
+└───┬──────────────────────────────────────────────┘
+    │
+    ├─────────────┬─────────────┬────────────┬──────────┐
+    │             │             │            │          │
+┌───▼──┐  ┌──────▼────┐  ┌─────▼──┐  ┌────▼───┐  ┌──▼───┐
+│Dash  │  │ Workers   │  │ Claims │  │ Risk   │  │ Auth │
+│board │  │ (Mgmt)    │  │ (Mgmt) │  │ Map    │  │Pages │
+└──────┘  └───────────┘  └────────┘  └────────┘  └──────┘
 ```
 
 ---
 
-## 🤖 AI/ML Integration Plan
+## 🛡️ Fraud Detection System
 
-### 1. Dynamic Weekly Premium Engine
+### Weighted Multi-Component Fraud Scoring
 
-**Model:** Gradient Boosted Regression (XGBoost)
+Avaran uses a **rule-based automated fraud detection engine** that analyzes 4 independent components to assess claim legitimacy with no human bias.
 
-**Input Features:**
-- Worker's operating zone (pin code level)
-- Historical disruption frequency in that zone (last 6 months)
-- Seasonal risk index (monsoon probability, winter AQI trends)
-- Worker's claim history (claims-to-premium ratio)
-- Upcoming week's weather forecast (7-day)
-
-**Output:** Personalized weekly premium (within tier range) with explainability score
-
-**Training Data:** IMD historical weather records, CPCB AQI archives, OpenStreetMap flood zone data
-
----
-
-### 2. Intelligent Fraud Detection System
-
-**Model:** Isolation Forest + Rule-Based Anomaly Detector
-
-**Fraud Signals Monitored:**
-- GPS location doesn't match claimed disruption zone
-- Worker claims disruption but platform data shows active deliveries during the same period
-- Multiple claims filed in the same household / same device ID
-- Claim filed for a trigger that didn't meet threshold in the worker's specific pin code
-- Sudden spike in claim frequency after plan upgrade
-
-**Risk Scoring:**
+**Risk Scoring Formula:**
 ```
 Fraud Score = weighted_avg(
   location_mismatch_score × 0.35,
@@ -319,34 +307,48 @@ Fraud Score = weighted_avg(
   duplicate_signal_score × 0.20,
   behavioral_anomaly_score × 0.15
 )
+
+Where: Each score ranges from 0.0 to 1.0
 ```
-- Score < 0.3 → Auto-approve
-- Score 0.3–0.6 → Flag for soft review (auto-approved within 4 hrs unless escalated)
-- Score > 0.6 → Hold for manual review
+
+### Fraud Score Components
+
+| Component | Weight | Signal | Logic |
+|-----------|--------|--------|-------|
+| **Location Mismatch** | 35% | GPS pincode vs disruption zone | Does worker's pin code match the area where the disruption occurred? |
+| **Platform Activity** | 30% | Active delivery during disruption | Did platform show worker as inactive/off-duty during the disruption window? |
+| **Duplicate Claims** | 20% | Repeated claims in 7-day window | Are there suspicious duplicate claims from same worker/device? |
+| **Behavioral Anomaly** | 15% | Historical claim patterns | Is this claim consistent with worker's historical behavior? |
+
+### Claim Decision Thresholds
+
+| Fraud Score | Decision | Action |
+|-------------|----------|--------|
+| < 0.20 | ✅ **Auto-Approve** | Claim immediately approved and processed |
+| 0.20–0.50 | 🔍 **Under Review** | Flag for soft review; auto-approve within 4 hrs unless escalated |
+| > 0.50 | 🚫 **Hold for Manual Review** | Escalated to admin for manual investigation |
+
+### Admin Fraud Visibility
+
+- Each claim displays a detailed **fraud score breakdown** showing:
+  - Overall fraud score (0-1 scale with percentage)
+  - Individual component scores
+  - Color-coded visual indicators (green/yellow/red)
+  - Decision reason (AUTO_APPROVE / UNDER_REVIEW / HOLD_MANUAL_REVIEW)
+  - List of triggered fraud signals
 
 ---
 
-### 3. Risk Profiling at Onboarding
+## 🪜 Future ML Integration Plan (Phase 4+)
 
-**Model:** K-Means Clustering + Logistic Risk Classifier
+### Proposed Enhancements (Not Yet Implemented)
 
-Workers are clustered into risk profiles at onboarding based on:
-- Pin code disruption history
-- Declared working hours
-- Platform (Zepto vs Blinkit operational patterns differ)
-- Time of year (pre-monsoon vs winter)
+1. **Dynamic Premium ML Model** - XGBoost-based personalized weekly premiums
+2. **Predictive Disruption Forecasting** - LSTM time-series for next 7 days per zone
+3. **Risk Profiling Clustering** - K-Means clustering at onboarding
+4. **Advanced Anomaly Detection** - Isolation Forest for behavioral analysis
 
-This risk profile determines their initial premium band and recommended plan.
-
----
-
-### 4. Predictive Disruption Forecasting (Admin Dashboard)
-
-**Model:** LSTM Time-Series Forecasting
-
-- Predicts likelihood of disruption events in the next 7 days per zone
-- Helps insurer pre-position reserve funds
-- Feeds back into next week's dynamic premium calculation
+*Current implementation prioritizes rule-based, interpretable, and deterministic fraud detection without ML dependencies.*
 
 ---
 
