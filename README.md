@@ -493,8 +493,8 @@ Where: Each score ranges from 0.0 to 1.0
 | Name | Role |
 |------|------|
 | [Arnab Dey] | Full Stack Developer |
-| [Premal Bhagat] | AI/ML Engineer |
-| [Manish Samanta] | UI/UX + Full Stack Developer |
+| [Premal Bhagat] | UI/UX Developer + AI/ML Engineer |
+| [Manish Samanta] | UI/UX Developer + Full Stack Developer |
 ---
 
 ## ⚠️ Coverage Exclusions (As per hackathon constraints)
