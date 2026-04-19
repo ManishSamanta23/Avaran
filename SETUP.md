@@ -1,115 +1,157 @@
-# 🛡️ Avaran — MERN Stack Setup Guide
+# Avaran - MERN Stack Setup Guide
 
-This project features a strictly validated API architecture powered by Zod, a high-performance React frontend built with Vite, and a standard Express backend, all managed from a single root monorepo.
+This repository is a single-root MERN project with:
+- React + Vite frontend in `frontend/`
+- Express + MongoDB backend in `backend/`
+- Vercel serverless API entry in `api/index.js`
 
 ## Project Structure
 
 ```
 avaran/
-├── backend/                 # Node.js + Express Backend
-│   ├── index.js             # Entry point
-│   ├── config/db.js         # MongoDB connection
-│   ├── models/              # Mongoose models
-│   │   ├── Worker.js
-│   │   ├── Policy.js
-│   │   ├── Claim.js
-│   │   └── Trigger.js
-│   ├── routes/              # Zod Validated API routes
-│   │   ├── auth.js
-│   │   ├── workers.js
-│   │   ├── policies.js
-│   │   ├── claims.js
-│   │   ├── triggers.js
-│   │   └── analytics.js
-│   └── middleware/
-│       └── auth.js          # JWT middleware
-│
-├── frontend/                # Vite + React Frontend
-│   ├── index.html           # Vite Entry Point
-│   └── src/
-│       ├── App.jsx
-│       ├── index.jsx
-│       ├── index.css        # Global styles & design system
-│       ├── context/
-│       │   └── AuthContext.js
-│       ├── utils/
-│       │   └── api.js       # Axios setup with auth tracking
-│       ├── components/
-│       │   └── Navbar/
-│       └── pages/
-│           ├── LandingPage.jsx
-│           ├── LoginPage.jsx
-│           ├── RegisterPage.jsx
-│           ├── DashboardPage.jsx
-│           ├── PolicyPage.jsx
-│           ├── ClaimsPage.jsx
-│           ├── UpgradePage.jsx
-│           └── TriggersPage.jsx
-│
-├── package.json             # Central configuration (runs both Vite and Node)
-├── vite.config.js           # Vite configuration defining frontend build rules
-├── .env                     # Local environment keys (not tracked)
-└── .gitignore               # Ignored files (node_modules, build/)
+|- api/                      # Serverless API wrapper
+|  `- index.js               # Exports backend app for Vercel
+|
+|- backend/                  # Node.js + Express backend
+|  |- index.js               # Main backend entry point
+|  |- config/
+|  |  `- db.js               # MongoDB connection config
+|  |- middleware/
+|  |  `- auth.js             # JWT auth middleware
+|  |- models/                # Mongoose data models
+|  |  |- Admin.js
+|  |  |- Claim.js
+|  |  |- Policy.js
+|  |  |- Trigger.js
+|  |  `- Worker.js
+|  |- routes/                # API route handlers
+|  |  |- admin.js
+|  |  |- adminAuth.js
+|  |  |- analytics.js
+|  |  |- auth.js
+|  |  |- claims.js
+|  |  |- policies.js
+|  |  |- triggers.js
+|  |  |- weather.js
+|  |  `- workers.js
+|  `- utils/                 # Business logic utilities
+|     |- autoApprovalEngine.js
+|     `- fraudScoringEngine.js
+|
+|- frontend/                 # Vite + React frontend
+|  |- index.html             # Vite HTML entry
+|  `- src/
+|     |- App.jsx
+|     |- index.css
+|     |- index.jsx
+|     |- components/         # Shared UI components
+|     |  |- ShieldIcon.jsx
+|     |  |- Navbar/
+|     |  |  |- Navbar.css
+|     |  |  `- Navbar.jsx
+|     |  `- admin/
+|     |     |- AdminLayout.css
+|     |     |- AdminLayout.jsx
+|     |     |- AdminProtectedRoute.jsx
+|     |     |- AdminSidebar.css
+|     |     `- AdminSidebar.jsx
+|     |- context/            # React auth contexts
+|     |  |- AdminAuthContext.jsx
+|     |  `- AuthContext.jsx
+|     |- pages/              # App screens
+|     |  |- AuthPages.css
+|     |  |- ClaimsPage.css
+|     |  |- ClaimsPage.jsx
+|     |  |- DashboardPage.css
+|     |  |- DashboardPage.jsx
+|     |  |- LandingPage.css
+|     |  |- LandingPage.jsx
+|     |  |- LoginPage.jsx
+|     |  |- PolicyPage.css
+|     |  |- PolicyPage.jsx
+|     |  |- RegisterPage.jsx
+|     |  |- TriggersPage.css
+|     |  |- TriggersPage.jsx
+|     |  |- UpgradePage.css
+|     |  |- UpgradePage.jsx
+|     |  `- admin/
+|     |     |- AdminAnalytics.jsx
+|     |     |- AdminClaims.jsx
+|     |     |- AdminDashboard.jsx
+|     |     |- AdminLogin.jsx
+|     |     |- AdminPages.css
+|     |     |- AdminRegister.jsx
+|     |     |- AdminRiskMap.jsx
+|     |     |- AdminSettings.jsx
+|     |     `- AdminWorkers.jsx
+|     `- utils/              # Frontend utility helpers
+|        |- api.jsx
+|        |- geolocation.jsx
+|        `- weather.jsx
+|
+|- package.json              # Root scripts and dependencies
+|- vite.config.js            # Vite config (frontend root + proxy)
+|- vercel.json               # Vercel rewrite configuration
+|- README.md                 # Project overview
+`- SETUP.md                  # Local setup instructions
 ```
 
-## Quick Start
+## Prerequisites
 
-### 1. Prerequisites
-- Node.js v18+
-- MongoDB (local or MongoDB Atlas connection)
+- Node.js 18+
+- MongoDB (local or Atlas)
 
-### 2. Clone & Install
-Because of the monorepo structure, a single install populates everything.
+## Install
+
 ```bash
-git clone <your-repo>
-cd avaran
 npm install
 ```
 
-### 3. Environment Setup
-Create a `.env` file at the root.
+## Environment Setup
+
+Create a `.env` file at the project root:
+
 ```bash
-# Add your local variables:
 MONGO_URI=mongodb://localhost:27017/avaran
-JWT_SECRET=your_secret_key_here
+JWT_SECRET=replace_with_strong_secret
+ADMIN_SECRET_KEY=replace_with_admin_secret
+OPENWEATHER_API_KEY=your_openweather_api_key
+PORT=5000
 ```
 
-### 4. Run Development
-Thanks to Vite and Concurrently, the frontend and backend run seamlessly together via one command.
+## Run Locally
+
+### Development (frontend + backend together)
+
 ```bash
 npm run dev
 ```
-* **Frontend:** Loads extremely fast using Vite (`http://localhost:3000` or `5173`).
-* **Backend:** Nodemon actively monitors the API securely passing Zod validation (`http://localhost:5000`).
 
-### 5. Run Production Build
-Ready to deploy? Build the unified project.
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:5000`
+
+### Individual Scripts
+
 ```bash
-npm run build
-npm run start
+npm run client   # Vite frontend
+npm run server   # Nodemon backend
+npm run start    # Node backend (without nodemon)
+npm run build    # Build frontend to dist/
 ```
 
-## Secure API Endpoints
+## API Route Groups
 
-Our backend strictly enforces all incoming payload structures using **Zod Validation Schema**. Required fields (e.g. `hoursLost`) are securely coerced, bounds-checked (`max: 24`), and cleansed before processing.  
+Mounted route groups in backend:
+- `POST/GET /api/auth/*`
+- `GET/PUT /api/workers/*`
+- `POST/GET/PUT /api/policies/*`
+- `POST/GET /api/claims/*`
+- `POST/GET /api/triggers/*`
+- `GET /api/analytics/*`
+- `GET /api/weather/*`
+- `POST/GET /api/admin/*` (admin auth + admin operations)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/auth/register | Register worker (Zod schema checking) |
-| POST | /api/auth/login | Login with JWT Token generation |
-| GET  | /api/workers/profile | Get logged-in user profile |
-| PUT  | /api/workers/profile | Update profile (Zod schema checking) |
-| POST | /api/policies | Purchase Plan (Zod `plan` Enum checking) |
-| PUT  | /api/policies/my/upgrade| In-place upgrade active plan |
-| GET  | /api/policies/my | Fetch active policies |
-| POST | /api/claims | Submit claim (Zod numerical coercion limits) |
-| GET  | /api/claims/my | Get claim history |
-| POST | /api/triggers/simulate | Sandbox trigger simulator |
+## Deployment Note
 
-## Tech Stack
-- **Frontend:** React 18, Vite (PWA optimization ready), React Router v6
-- **Backend:** Node.js, Express.js (Rest API)
-- **Validation:** Zod Payload Validation Ecosystem
-- **Database:** MongoDB + Mongoose (Document DB)
-- **Auth:** JWT + bcrypt
-- **Payments:** Razorpay Sandbox ready (Phase 3)
+- `api/index.js` re-exports the Express app for serverless environments.
+- `vercel.json` rewrites `/api/*` requests to `api/index.js`.
