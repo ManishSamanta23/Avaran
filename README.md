@@ -1,6 +1,6 @@
 # 🛒 Avaran — Smart Automated Parametric Income Insurance for India's Q-Commerce Workers
 
-> **Guidewire DEVTrails 2026 | University Hackathon**
+> **University Hackathon 2026**
 > Protecting the livelihoods of Zepto & Blinkit delivery partners from uncontrollable external disruptions.
 
 <p align="center">
@@ -509,7 +509,7 @@ Avaran **only covers** verifiable, objective, external disruptions that cause lo
 
 ---
 
-*Built with ❤️ for India's 15M+ gig workers | Guidewire DEVTrails 2026*
+*Built with ❤️ By Team Unknown for India's 15M+ gig workers*
 
 
 [def]: https://www.dropbox.com/scl/fi/akyn04zrge330e0di3sp3/Avaran-Project.mp4?rlkey=c9m3uy0njwtuoox48idtwmotx&st=2k3vnwe0&dl=0

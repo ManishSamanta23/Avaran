@@ -1,5 +1,6 @@
 const Claim = require('../models/Claim');
 const Policy = require('../models/Policy');
+const { generateFraudRiskInsight } = require('./geminiRiskInsights');
 
 /**
  * Weighted Fraud Scoring Engine
@@ -210,7 +211,7 @@ async function calculateFraudScore(worker, claim, claimPincode = null) {
       decisionReason = 'High fraud risk - flagged for manual review';
     }
     
-    return {
+    const result = {
       fraudScore: parseFloat(fraudScore.toFixed(4)),
       fraudPercentage: Math.round(fraudScore * 100),
       decision,
@@ -228,6 +229,33 @@ async function calculateFraudScore(worker, claim, claimPincode = null) {
         behavioralAnomaly: behavioralScore > 0 ? `Score: ${(behavioralScore * 100).toFixed(0)}%` : 'None'
       }
     };
+
+    const aiReview = await generateFraudRiskInsight({
+      claim: {
+        triggerType: claim.triggerType,
+        hoursLost: claim.hoursLost,
+        claimDate: claim.claimDate
+      },
+      worker: {
+        pincode: worker.pincode,
+        avgWeeklyEarnings: worker.avgWeeklyEarnings,
+        avgDailyHours: worker.avgDailyHours
+      },
+      claimPincode,
+      scoring: {
+        fraudScore: result.fraudScore,
+        fraudPercentage: result.fraudPercentage,
+        decision: result.decision,
+        breakdown: result.breakdown
+      }
+    });
+
+    if (aiReview) {
+      result.signals.aiRiskInsight = aiReview.riskSummary;
+      result.aiReview = aiReview;
+    }
+
+    return result;
   } catch (err) {
     console.error('Fraud score calculation error:', err);
     return {

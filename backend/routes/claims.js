@@ -150,7 +150,10 @@ router.post('/', protect, async (req, res) => {
         decision: fraudScoring.decision,
         decisionReason: fraudScoring.decisionReason,
         breakdown: fraudScoring.breakdown,
-        signals: fraudScoring.signals,
+        signals: {
+          ...fraudScoring.signals,
+          aiReview: fraudScoring.aiReview || null
+        },
         calculatedAt: new Date()
       },
       status,

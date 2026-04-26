@@ -153,7 +153,7 @@ const LandingPage = () => {
             <ShieldIcon color="#FF6B35" />
             <span>Avar<strong>an</strong></span>
           </div>
-          <p>Built for India's invisible workforce · Guidewire DEVTrails 2026</p>
+          <p>Built with ❤️ By Team Unknown for India's 15M+ gig workers</p>
           <p className="footer-note">
             Coverage: Income loss only · Excludes health, vehicle, accidents
           </p>

@@ -116,6 +116,8 @@ MONGO_URI=mongodb://localhost:27017/avaran
 JWT_SECRET=replace_with_strong_secret
 ADMIN_SECRET_KEY=replace_with_admin_secret
 OPENWEATHER_API_KEY=your_openweather_api_key
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-1.5-flash
 PORT=5000
 ```
 
